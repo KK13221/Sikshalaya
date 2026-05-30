@@ -277,7 +277,7 @@ function BranchesView({ onViewBranch }) {
 
 /* ── PRINCIPALS ───────────────────────────────────────────────────────── */
 function PrincipalModal({ principal, schools, onClose, onSaved }) {
-  const empty = { name: '', email: '', schoolId: '', role: 'principal' }
+  const empty = { name: '', email: '', schoolId: '', role: 'principal', password: '' }
   const [form, setForm] = useState(principal ? { ...empty, ...principal } : empty)
   const [fieldErrors, setFieldErrors] = useState({})
   const [saving, setSaving] = useState(false)
@@ -293,6 +293,7 @@ function PrincipalModal({ principal, schools, onClose, onSaved }) {
     if (!form.name.trim()) errs.name = 'Name is required'
     if (!form.email.trim()) errs.email = 'Email is required'
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errs.email = 'Invalid email address'
+    if (form.password && form.password.length < 6) errs.password = 'Password must be at least 6 characters'
     return errs
   }
 
@@ -329,7 +330,7 @@ function PrincipalModal({ principal, schools, onClose, onSaved }) {
   }
 
   return (
-    <Modal title={principal ? 'Edit principal' : 'Add principal'} subtitle={!principal ? 'A secure temporary password will be generated.' : ''} onClose={onClose}
+    <Modal title={principal ? 'Edit principal' : 'Add principal'} subtitle={!principal ? 'Leave password blank to auto-generate a secure temporary password.' : ''} onClose={onClose}
       footer={<>
         <GhostBtn onClick={onClose}>Cancel</GhostBtn>
         <PrimaryBtn onClick={submit} disabled={saving}>{saving ? 'Saving…' : principal ? 'Save' : 'Create'}</PrimaryBtn>
@@ -337,6 +338,9 @@ function PrincipalModal({ principal, schools, onClose, onSaved }) {
       <ErrBanner msg={err} />
       <Input label="Full name" name="name" value={form.name} onChange={set} required error={fieldErrors.name} />
       <Input label="Email" name="email" value={form.email} onChange={set} type="email" required error={fieldErrors.email} />
+      {!principal && (
+        <Input label="Password (Optional)" name="password" value={form.password||''} onChange={set} placeholder="Leave blank to auto-generate" error={fieldErrors.password} />
+      )}
       <Select label="Assign to branch" name="schoolId" value={form.schoolId||''} onChange={set}
         options={schools.map(s => ({ value: s.id, label: `${s.name} (${s.city})` }))} />
     </Modal>
