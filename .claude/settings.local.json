@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install *)",
+      "Bash(npm run *)",
+      "Bash(mkdir -p /tmp/shikshalaye)",
+      "Bash(tar -xf C:/Users/asus/.claude/projects/e--AI-Sikshalaya-Global/43ab128a-af5d-4177-bdf1-3bcb1f0029f7/tool-results/design.json -C /tmp/shikshalaye)",
+      "Read(//tmp/**)",
+      "Bash(node -e \"try{const {Sequelize}=require\\('sequelize'\\);const s=new Sequelize\\('mysql','root','Inurum@2612',{host:'localhost',port:3306,dialect:'mysql',logging:false}\\);s.authenticate\\(\\).then\\(\\(\\)=>console.log\\('connected'\\)\\).catch\\(e=>{console.log\\('AUTH_ERR',JSON.stringify\\({msg:e.message,orig:e.original?.message,code:e.original?.code}\\)\\)}\\);}catch\\(e\\){console.log\\('INIT_ERR',e.message\\);}\")",
+      "Bash(findstr \"3306\")",
+      "Bash(winget install *)",
+      "Bash(net start *)",
+      "Bash(curl -s http://localhost:5000/api/auth/me)",
+      "Bash(node -e ' *)",
+      "Bash(curl -s -c /tmp/cookies.txt -X POST http://localhost:5000/api/auth/login -H 'Content-Type: application/json' -d '{\"email\":\"principal.gurugram@shikshalaya.in\",\"password\":\"Principal@123\"}')",
+      "Bash(node -e \"process.stdin.resume\\(\\);let d='';process.stdin.on\\('data',x=>d+=x\\);process.stdin.on\\('end',\\(\\)=>{const r=JSON.parse\\(d\\);console.log\\('Login as:', r.data?.user?.name, '| schoolId:', r.data?.user?.schoolId\\);}\\)\")",
+      "Bash(curl -s -b /tmp/cookies.txt \"http://localhost:5000/api/teachers?search=kamlesh\")",
+      "Bash(node -e \"process.stdin.resume\\(\\);let d='';process.stdin.on\\('data',x=>d+=x\\);process.stdin.on\\('end',\\(\\)=>{const r=JSON.parse\\(d\\);console.log\\('Teachers found:', r.total\\);r.data?.forEach\\(t=>console.log\\(' -',t.name, t.email\\)\\);}\\);\")",
+      "Bash(curl -s -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzc5Mjc0ODcwLCJleHAiOjE3Nzk4Nzk2NzB9.KY2FXFTBaKx9MO-YRqQ6JVctgVHzUgNQmXJVZIH5z6s' http://localhost:5000/api/teachers?search=kamlesh)",
+      "Bash(curl -s -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzc5Mjc0OTM0LCJleHAiOjE3Nzk4Nzk3MzR9.mLIbzgVkcb5B7y06mRKjcARkq7VfnAsUvoR-tO0ZclA' http://168.144.121.95/api/teachers?search=kamlesh)"
+    ]
+  }
+}

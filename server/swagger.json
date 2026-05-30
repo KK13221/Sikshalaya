@@ -1,0 +1,1083 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Shikshalaya API",
+    "description": "REST API for the Shikshalaya school management platform.\n\nAll protected routes require a JWT token via `Authorization: Bearer <token>` header or `token` cookie.\n\n**Roles:** `superadmin` · `principal` · `teacher`\n\n**Underperformer rule:** A student is flagged when any of Academics, Punctuality, or Behaviour drops below 75%.\n\n**Assessment hierarchy:** `chapter_test` (20%) → `class_test` (20%) → `unit_test` (30%) → `term_exam` (30%)",
+    "version": "1.1.0",
+    "contact": { "email": "info@inurum.com" }
+  },
+  "servers": [
+    { "url": "http://168.144.121.95/api", "description": "Production" },
+    { "url": "http://localhost:5000/api",  "description": "Local dev" }
+  ],
+  "tags": [
+    { "name": "Auth",             "description": "Login, logout, change password" },
+    { "name": "Dashboard",        "description": "Aggregated KPI stats" },
+    { "name": "Schools",          "description": "Branch management (superadmin only)" },
+    { "name": "Users",            "description": "Principal & staff accounts" },
+    { "name": "Teachers",         "description": "Teacher CRUD (principal/superadmin)" },
+    { "name": "Teacher Mobile",   "description": "Teacher-scoped endpoints for the mobile app (/teachers/me/…)" },
+    { "name": "Students",         "description": "Student records & underperformer tracking" },
+    { "name": "Classes",          "description": "Class & section management" },
+    { "name": "Attendance",       "description": "Daily attendance" },
+    { "name": "Chapters",         "description": "Curriculum chapter definitions" },
+    { "name": "Assessments",      "description": "Assessments & marks entry" },
+    { "name": "Behaviour",        "description": "Behaviour logs & presets" },
+    { "name": "Fees",             "description": "Fee records & collection" },
+    { "name": "Notifications",    "description": "In-app notifications" }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": { "type": "http", "scheme": "bearer", "bearerFormat": "JWT" },
+      "cookieAuth":  { "type": "apiKey", "in": "cookie", "name": "token" }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": false },
+          "message": { "type": "string",  "example": "Error message" }
+        }
+      },
+      "School": {
+        "type": "object",
+        "properties": {
+          "id":           { "type": "integer" },
+          "name":         { "type": "string",  "example": "Delhi Public School, Sector 45" },
+          "city":         { "type": "string",  "example": "Gurugram" },
+          "state":        { "type": "string",  "example": "Haryana" },
+          "board":        { "type": "string",  "enum": ["CBSE","ICSE","State Board","IB","Other"] },
+          "plan":         { "type": "string",  "enum": ["Basic","Pro","Enterprise"] },
+          "status":       { "type": "string",  "enum": ["active","trial","suspended"] },
+          "phone":        { "type": "string" },
+          "email":        { "type": "string" },
+          "pincode":      { "type": "string" },
+          "principalId":  { "type": "integer" },
+          "createdAt":    { "type": "string",  "format": "date-time" }
+        }
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id":       { "type": "integer" },
+          "name":     { "type": "string",  "example": "Dr. Karthik Srivastava" },
+          "email":    { "type": "string",  "example": "principal.gurugram@shikshalaya.in" },
+          "role":     { "type": "string",  "enum": ["superadmin","principal","teacher"] },
+          "schoolId": { "type": "integer" },
+          "isActive": { "type": "boolean" }
+        }
+      },
+      "Teacher": {
+        "type": "object",
+        "properties": {
+          "id":            { "type": "integer" },
+          "schoolId":      { "type": "integer" },
+          "employeeId":    { "type": "string",  "example": "GUR001" },
+          "name":          { "type": "string",  "example": "Mrs. Kavitha Ramachandran" },
+          "subjects":      { "type": "array", "items": { "type": "string" }, "example": ["Mathematics","Science"] },
+          "experience":    { "type": "integer", "example": 12 },
+          "qualification": { "type": "string",  "example": "M.Sc. Mathematics" },
+          "isActive":      { "type": "boolean" }
+        }
+      },
+      "Student": {
+        "type": "object",
+        "properties": {
+          "id":               { "type": "integer" },
+          "schoolId":         { "type": "integer" },
+          "admissionNo":      { "type": "string",  "example": "GUR/2026/0001" },
+          "name":             { "type": "string",  "example": "Aarav Sharma" },
+          "gender":           { "type": "string",  "enum": ["male","female","other"] },
+          "dateOfBirth":      { "type": "string",  "format": "date" },
+          "classId":          { "type": "integer" },
+          "section":          { "type": "string",  "example": "A" },
+          "rollNo":           { "type": "integer" },
+          "guardianName":     { "type": "string" },
+          "guardianPhone":    { "type": "string" },
+          "isActive":         { "type": "boolean" },
+          "academicsPct":     { "type": "number",  "nullable": true, "description": "Weighted avg marks % across all completed assessments. null if no data." },
+          "punctualityPct":   { "type": "number",  "nullable": true, "description": "Attendance % over last 30 days. null if no records." },
+          "behaviourScore":   { "type": "number",  "nullable": true, "description": "Behaviour score 0–100, base 85 ± log weights. null if no logs." },
+          "isUnderperformer": { "type": "boolean", "description": "True if any dimension < 75%" },
+          "underperformerDims": { "type": "array", "items": { "type": "string", "enum": ["academics","punctuality","behaviour"] } },
+          "metricsComputedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Class": {
+        "type": "object",
+        "properties": {
+          "id":           { "type": "integer" },
+          "schoolId":     { "type": "integer" },
+          "name":         { "type": "string",  "example": "Class 9" },
+          "section":      { "type": "string",  "example": "A" },
+          "subjects":     { "type": "array",   "items": { "type": "string" }, "example": ["Mathematics","Science","English"] },
+          "academicYear": { "type": "string",  "example": "2025-26" }
+        }
+      },
+      "Chapter": {
+        "type": "object",
+        "properties": {
+          "id":            { "type": "integer" },
+          "schoolId":      { "type": "integer" },
+          "classNum":      { "type": "integer", "example": 9 },
+          "subjectId":     { "type": "string",  "example": "Mathematics" },
+          "chapterNumber": { "type": "integer", "example": 1 },
+          "name":          { "type": "string",  "example": "Real Numbers" },
+          "periods":       { "type": "integer", "example": 8 },
+          "maxMarks":      { "type": "integer", "example": 25 },
+          "status":        { "type": "string",  "enum": ["upcoming","in_progress","done"] },
+          "hasChapterTest":{ "type": "boolean" },
+          "startedAt":     { "type": "string",  "format": "date-time", "nullable": true },
+          "completedAt":   { "type": "string",  "format": "date-time", "nullable": true }
+        }
+      },
+      "Assessment": {
+        "type": "object",
+        "properties": {
+          "id":           { "type": "integer" },
+          "schoolId":     { "type": "integer" },
+          "classNum":     { "type": "integer", "example": 9 },
+          "section":      { "type": "string",  "example": "A" },
+          "subjectId":    { "type": "string",  "example": "Mathematics" },
+          "type":         { "type": "string",  "enum": ["chapter_test","class_test","unit_test","term_exam"] },
+          "chapterId":    { "type": "integer", "nullable": true },
+          "title":        { "type": "string",  "example": "Real Numbers · Chapter Test" },
+          "maxMarks":     { "type": "integer", "example": 25 },
+          "passMarks":    { "type": "integer", "example": 10 },
+          "scheduledFor": { "type": "string",  "format": "date", "nullable": true },
+          "conductedOn":  { "type": "string",  "format": "date", "nullable": true },
+          "status":       { "type": "string",  "enum": ["draft","scheduled","active","completed","published"] },
+          "academicYear": { "type": "string",  "example": "2025-26" },
+          "termId":       { "type": "string",  "example": "T1" }
+        }
+      },
+      "Mark": {
+        "type": "object",
+        "properties": {
+          "assessmentId":   { "type": "integer" },
+          "studentId":      { "type": "integer" },
+          "marksObtained":  { "type": "number", "nullable": true },
+          "isAbsent":       { "type": "boolean" },
+          "tags":           { "type": "array", "items": { "type": "string" } },
+          "note":           { "type": "string", "nullable": true },
+          "enteredBy":      { "type": "integer" }
+        }
+      },
+      "AttendanceRecord": {
+        "type": "object",
+        "properties": {
+          "id":       { "type": "integer" },
+          "schoolId": { "type": "integer" },
+          "classId":  { "type": "integer" },
+          "date":     { "type": "string", "format": "date", "example": "2026-05-19" },
+          "records":  {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "studentId": { "type": "integer" },
+                "status":    { "type": "string", "enum": ["present","absent","late"] }
+              }
+            }
+          }
+        }
+      },
+      "BehaviourPreset": {
+        "type": "object",
+        "properties": {
+          "id":       { "type": "integer" },
+          "label":    { "type": "string", "example": "Disruptive in class" },
+          "category": { "type": "string", "enum": ["positive","negative"] },
+          "weight":   { "type": "number", "example": -5 }
+        }
+      },
+      "Notification": {
+        "type": "object",
+        "properties": {
+          "id":        { "type": "integer" },
+          "userId":    { "type": "integer" },
+          "schoolId":  { "type": "integer" },
+          "title":     { "type": "string" },
+          "body":      { "type": "string" },
+          "priority":  { "type": "string", "enum": ["info","urgent"] },
+          "category":  { "type": "string", "example": "underperformer" },
+          "isRead":    { "type": "boolean" },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      }
+    }
+  },
+  "security": [
+    { "bearerAuth": [] },
+    { "cookieAuth": [] }
+  ],
+  "paths": {
+
+    "/auth/login": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Login",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": {
+            "type": "object", "required": ["email","password"],
+            "properties": {
+              "email":    { "type": "string", "example": "principal.gurugram@shikshalaya.in" },
+              "password": { "type": "string", "example": "Principal@123" }
+            }
+          }}}
+        },
+        "responses": {
+          "200": { "description": "Login successful — returns JWT token + user object", "content": { "application/json": { "schema": {
+            "type": "object",
+            "properties": {
+              "success": { "type": "boolean" },
+              "token":   { "type": "string" },
+              "user":    { "$ref": "#/components/schemas/User" }
+            }
+          }}}},
+          "401": { "description": "Invalid credentials" }
+        }
+      }
+    },
+
+    "/auth/logout": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Logout — clears cookie",
+        "responses": { "200": { "description": "Logged out" } }
+      }
+    },
+
+    "/auth/me": {
+      "get": {
+        "tags": ["Auth"],
+        "summary": "Get current user profile",
+        "responses": {
+          "200": { "description": "Current user", "content": { "application/json": { "schema": {
+            "type": "object",
+            "properties": { "success": { "type": "boolean" }, "user": { "$ref": "#/components/schemas/User" } }
+          }}}},
+          "401": { "description": "Not authenticated" }
+        }
+      }
+    },
+
+    "/auth/change-password": {
+      "put": {
+        "tags": ["Auth"],
+        "summary": "Change password",
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": {
+            "type": "object", "required": ["currentPassword","newPassword"],
+            "properties": {
+              "currentPassword": { "type": "string" },
+              "newPassword":     { "type": "string", "description": "Min 8 chars" }
+            }
+          }}}
+        },
+        "responses": {
+          "200": { "description": "Password updated" },
+          "400": { "description": "Current password incorrect" }
+        }
+      }
+    },
+
+    "/dashboard/superadmin": {
+      "get": {
+        "tags": ["Dashboard"],
+        "summary": "Superadmin dashboard stats",
+        "description": "Requires role: superadmin. Returns school counts, student counts, revenue, etc.",
+        "responses": { "200": { "description": "Dashboard stats object" } }
+      }
+    },
+
+    "/dashboard/principal": {
+      "get": {
+        "tags": ["Dashboard"],
+        "summary": "Principal dashboard stats",
+        "description": "Returns today's attendance %, student count, teacher count, underperformer count for the authenticated principal's school.",
+        "responses": { "200": { "description": "Dashboard stats object" } }
+      }
+    },
+
+    "/schools": {
+      "get": {
+        "tags": ["Schools"],
+        "summary": "List schools (superadmin only)",
+        "parameters": [
+          { "name": "page",   "in": "query", "schema": { "type": "integer", "default": 1 } },
+          { "name": "limit",  "in": "query", "schema": { "type": "integer", "default": 20 } },
+          { "name": "search", "in": "query", "schema": { "type": "string" } },
+          { "name": "status", "in": "query", "schema": { "type": "string", "enum": ["active","trial","suspended"] } },
+          { "name": "plan",   "in": "query", "schema": { "type": "string", "enum": ["Basic","Pro","Enterprise"] } }
+        ],
+        "responses": { "200": { "description": "Paginated schools list" } }
+      },
+      "post": {
+        "tags": ["Schools"],
+        "summary": "Create a school (superadmin only)",
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": {
+            "type": "object", "required": ["name","city","state"],
+            "properties": {
+              "name":    { "type": "string" },
+              "city":    { "type": "string" },
+              "state":   { "type": "string" },
+              "board":   { "type": "string", "enum": ["CBSE","ICSE","State Board","IB","Other"] },
+              "plan":    { "type": "string", "enum": ["Basic","Pro","Enterprise"] },
+              "status":  { "type": "string", "enum": ["active","trial","suspended"] },
+              "phone":   { "type": "string" },
+              "email":   { "type": "string" },
+              "pincode": { "type": "string" }
+            }
+          }}}
+        },
+        "responses": { "201": { "description": "School created" } }
+      }
+    },
+
+    "/schools/stats": {
+      "get": {
+        "tags": ["Schools"],
+        "summary": "School stats (superadmin only)",
+        "responses": { "200": { "description": "Counts by status and plan" } }
+      }
+    },
+
+    "/schools/{id}": {
+      "get": {
+        "tags": ["Schools"],
+        "summary": "Get school by ID",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "School details" }, "404": { "description": "Not found" } }
+      },
+      "put": {
+        "tags": ["Schools"],
+        "summary": "Update a school",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/School" } } } },
+        "responses": { "200": { "description": "Updated" } }
+      },
+      "delete": {
+        "tags": ["Schools"],
+        "summary": "Delete a school (cascades all data)",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "Deleted" } }
+      }
+    },
+
+    "/users": {
+      "get": {
+        "tags": ["Users"],
+        "summary": "List users",
+        "parameters": [
+          { "name": "role",     "in": "query", "schema": { "type": "string", "enum": ["superadmin","principal","teacher"] } },
+          { "name": "schoolId", "in": "query", "schema": { "type": "integer" } },
+          { "name": "search",   "in": "query", "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "Users list" } }
+      },
+      "post": {
+        "tags": ["Users"],
+        "summary": "Create a user",
+        "description": "Superadmin only. A temporary password is auto-generated and returned once in `tempPassword`.",
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": {
+            "type": "object", "required": ["name","email","role"],
+            "properties": {
+              "name":     { "type": "string" },
+              "email":    { "type": "string", "format": "email" },
+              "role":     { "type": "string", "enum": ["superadmin","principal","teacher"] },
+              "schoolId": { "type": "integer" }
+            }
+          }}}
+        },
+        "responses": {
+          "201": { "description": "User created. Includes `tempPassword` in response." },
+          "400": { "description": "Email already exists" }
+        }
+      }
+    },
+
+    "/users/{id}": {
+      "put": {
+        "tags": ["Users"],
+        "summary": "Update a user",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/User" } } } },
+        "responses": { "200": { "description": "Updated" } }
+      },
+      "delete": {
+        "tags": ["Users"],
+        "summary": "Deactivate a user (soft delete)",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "Deactivated" } }
+      }
+    },
+
+    "/teachers": {
+      "get": {
+        "tags": ["Teachers"],
+        "summary": "List teachers",
+        "parameters": [
+          { "name": "page",   "in": "query", "schema": { "type": "integer", "default": 1 } },
+          { "name": "limit",  "in": "query", "schema": { "type": "integer", "default": 20 } },
+          { "name": "search", "in": "query", "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "Paginated teachers list" } }
+      },
+      "post": {
+        "tags": ["Teachers"],
+        "summary": "Add a teacher (principal/superadmin)",
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": {
+            "type": "object", "required": ["name","employeeId"],
+            "properties": {
+              "name":          { "type": "string" },
+              "employeeId":    { "type": "string" },
+              "subjects":      { "type": "array", "items": { "type": "string" } },
+              "experience":    { "type": "integer" },
+              "qualification": { "type": "string" }
+            }
+          }}}
+        },
+        "responses": { "201": { "description": "Teacher created" } }
+      }
+    },
+
+    "/teachers/{id}": {
+      "get": {
+        "tags": ["Teachers"],
+        "summary": "Get a teacher",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "Teacher record" }, "404": { "description": "Not found" } }
+      },
+      "put": {
+        "tags": ["Teachers"],
+        "summary": "Update a teacher",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Teacher" } } } },
+        "responses": { "200": { "description": "Updated" } }
+      },
+      "delete": {
+        "tags": ["Teachers"],
+        "summary": "Deactivate a teacher (soft delete)",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "Deactivated" } }
+      }
+    },
+
+    "/teachers/me/classes": {
+      "get": {
+        "tags": ["Teacher Mobile"],
+        "summary": "My classes",
+        "description": "Returns all classes in the authenticated teacher's school.",
+        "responses": { "200": { "description": "List of classes", "content": { "application/json": { "schema": {
+          "type": "object",
+          "properties": { "success": { "type": "boolean" }, "data": { "type": "array", "items": { "$ref": "#/components/schemas/Class" } } }
+        }}}} }
+      }
+    },
+
+    "/teachers/me/students": {
+      "get": {
+        "tags": ["Teacher Mobile"],
+        "summary": "My students",
+        "description": "Returns active students. Filter by classId to get students in a specific class.",
+        "parameters": [
+          { "name": "classId", "in": "query", "schema": { "type": "integer" }, "description": "Filter by class ID" }
+        ],
+        "responses": { "200": { "description": "List of students with Class info" } }
+      }
+    },
+
+    "/teachers/me/attendance": {
+      "get": {
+        "tags": ["Teacher Mobile"],
+        "summary": "Get attendance records",
+        "parameters": [
+          { "name": "classId", "in": "query", "schema": { "type": "integer" } },
+          { "name": "date",    "in": "query", "schema": { "type": "string", "format": "date" }, "description": "Exact date (YYYY-MM-DD)" },
+          { "name": "from",    "in": "query", "schema": { "type": "string", "format": "date" }, "description": "Start of date range" },
+          { "name": "to",      "in": "query", "schema": { "type": "string", "format": "date" }, "description": "End of date range" }
+        ],
+        "responses": { "200": { "description": "Attendance rows" } }
+      },
+      "post": {
+        "tags": ["Teacher Mobile"],
+        "summary": "Mark attendance",
+        "description": "Upserts one attendance row per (classId, date). Each row contains the full records array for that class.",
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": {
+            "type": "object", "required": ["classId","date","records"],
+            "properties": {
+              "classId": { "type": "integer", "example": 22 },
+              "date":    { "type": "string",  "format": "date", "example": "2026-05-19" },
+              "records": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "studentId": { "type": "integer" },
+                    "status":    { "type": "string", "enum": ["present","absent","late"] }
+                  }
+                },
+                "example": [{ "studentId": 518, "status": "present" }, { "studentId": 519, "status": "absent" }]
+              }
+            }
+          }}}
+        },
+        "responses": { "200": { "description": "Attendance saved" } }
+      }
+    },
+
+    "/teachers/me/assessments": {
+      "get": {
+        "tags": ["Teacher Mobile"],
+        "summary": "My assessments",
+        "description": "Returns assessments for the teacher's school, with chapter info included.",
+        "parameters": [
+          { "name": "classNum",  "in": "query", "schema": { "type": "integer" },  "description": "e.g. 9" },
+          { "name": "subjectId", "in": "query", "schema": { "type": "string" },   "description": "e.g. Mathematics" },
+          { "name": "section",   "in": "query", "schema": { "type": "string" },   "description": "e.g. A" },
+          { "name": "type",      "in": "query", "schema": { "type": "string", "enum": ["chapter_test","class_test","unit_test","term_exam"] } }
+        ],
+        "responses": { "200": { "description": "Assessments list with Chapter included" } }
+      }
+    },
+
+    "/teachers/me/chapters": {
+      "get": {
+        "tags": ["Teacher Mobile"],
+        "summary": "My chapters",
+        "description": "Returns chapters defined by the principal for the teacher's school.",
+        "parameters": [
+          { "name": "classNum",  "in": "query", "schema": { "type": "integer" } },
+          { "name": "subjectId", "in": "query", "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "Chapters list" } }
+      }
+    },
+
+    "/teachers/me/assessments/{assessmentId}/marks/{studentId}": {
+      "patch": {
+        "tags": ["Teacher Mobile"],
+        "summary": "Enter / update a mark",
+        "description": "Upserts a mark for one student in one assessment. Triggers async metric recompute for that student.",
+        "parameters": [
+          { "name": "assessmentId", "in": "path", "required": true, "schema": { "type": "integer" } },
+          { "name": "studentId",    "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": {
+            "type": "object",
+            "properties": {
+              "marksObtained": { "type": "number", "example": 18, "description": "Must be 0–maxMarks. Ignored if isAbsent=true." },
+              "isAbsent":      { "type": "boolean", "example": false },
+              "tags":          { "type": "array", "items": { "type": "string" }, "example": [] },
+              "note":          { "type": "string", "nullable": true }
+            }
+          }}}
+        },
+        "responses": {
+          "200": { "description": "Mark saved. Metrics recomputed asynchronously." },
+          "400": { "description": "Marks out of range" },
+          "403": { "description": "Assessment is published — cannot edit" }
+        }
+      }
+    },
+
+    "/teachers/me/notifications": {
+      "get": {
+        "tags": ["Teacher Mobile"],
+        "summary": "My notifications",
+        "description": "Returns last 50 notifications for the authenticated user.",
+        "responses": { "200": { "description": "Notifications list" } }
+      }
+    },
+
+    "/students": {
+      "get": {
+        "tags": ["Students"],
+        "summary": "List students",
+        "parameters": [
+          { "name": "page",    "in": "query", "schema": { "type": "integer", "default": 1 } },
+          { "name": "limit",   "in": "query", "schema": { "type": "integer", "default": 20 } },
+          { "name": "search",  "in": "query", "schema": { "type": "string" } },
+          { "name": "classId", "in": "query", "schema": { "type": "integer" } }
+        ],
+        "responses": { "200": { "description": "Paginated students list" } }
+      },
+      "post": {
+        "tags": ["Students"],
+        "summary": "Add a student",
+        "description": "schoolId is always set from the authenticated user — cannot be overridden by the client.",
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": {
+            "type": "object", "required": ["name","admissionNo"],
+            "properties": {
+              "name":             { "type": "string" },
+              "admissionNo":      { "type": "string" },
+              "gender":           { "type": "string", "enum": ["male","female","other"] },
+              "dateOfBirth":      { "type": "string", "format": "date" },
+              "classId":          { "type": "integer" },
+              "section":          { "type": "string" },
+              "rollNo":           { "type": "integer" },
+              "guardianName":     { "type": "string" },
+              "guardianRelation": { "type": "string" },
+              "guardianPhone":    { "type": "string" },
+              "guardianEmail":    { "type": "string", "format": "email" },
+              "city":             { "type": "string" },
+              "state":            { "type": "string" }
+            }
+          }}}
+        },
+        "responses": { "201": { "description": "Student created" }, "400": { "description": "Validation error" } }
+      }
+    },
+
+    "/students/underperformers": {
+      "get": {
+        "tags": ["Students"],
+        "summary": "List underperforming students",
+        "description": "Students where isUnderperformer=true (any dimension below 75%). Includes Class info.",
+        "parameters": [
+          { "name": "classNum", "in": "query", "schema": { "type": "integer" } },
+          { "name": "section",  "in": "query", "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "List of students with metrics and Class", "content": { "application/json": { "schema": {
+          "type": "object",
+          "properties": { "success": { "type": "boolean" }, "data": { "type": "array", "items": { "$ref": "#/components/schemas/Student" } } }
+        }}}} }
+      }
+    },
+
+    "/students/{id}": {
+      "get": {
+        "tags": ["Students"],
+        "summary": "Get a student",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "Student with Class info" }, "404": { "description": "Not found" } }
+      },
+      "put": {
+        "tags": ["Students"],
+        "summary": "Update a student",
+        "description": "schoolId cannot be changed via this endpoint.",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Student" } } } },
+        "responses": { "200": { "description": "Updated" } }
+      },
+      "delete": {
+        "tags": ["Students"],
+        "summary": "Deactivate a student (soft delete)",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "Deactivated" } }
+      }
+    },
+
+    "/students/{id}/metrics": {
+      "get": {
+        "tags": ["Students"],
+        "summary": "Get student metrics",
+        "description": "Returns computed academicsPct, punctualityPct, behaviourScore, isUnderperformer.",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "Metrics object" } }
+      }
+    },
+
+    "/students/{id}/acknowledge": {
+      "patch": {
+        "tags": ["Students"],
+        "summary": "Acknowledge underperformer flag",
+        "description": "Sets acknowledgedAt timestamp — teacher/principal has seen the flag.",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "Acknowledged" } }
+      }
+    },
+
+    "/classes": {
+      "get": {
+        "tags": ["Classes"],
+        "summary": "List classes",
+        "parameters": [
+          { "name": "schoolId", "in": "query", "schema": { "type": "integer" }, "description": "Superadmin only — filter by school" }
+        ],
+        "responses": { "200": { "description": "Classes ordered by name, section" } }
+      },
+      "post": {
+        "tags": ["Classes"],
+        "summary": "Create a class/section (principal/superadmin)",
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": {
+            "type": "object", "required": ["name","section"],
+            "properties": {
+              "name":         { "type": "string", "example": "Class 9" },
+              "section":      { "type": "string", "example": "A" },
+              "subjects":     { "type": "array", "items": { "type": "string" } },
+              "academicYear": { "type": "string", "example": "2025-26" }
+            }
+          }}}
+        },
+        "responses": { "201": { "description": "Class created" } }
+      }
+    },
+
+    "/classes/{id}": {
+      "put": {
+        "tags": ["Classes"],
+        "summary": "Update a class",
+        "description": "schoolId cannot be changed.",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Class" } } } },
+        "responses": { "200": { "description": "Updated" } }
+      },
+      "delete": {
+        "tags": ["Classes"],
+        "summary": "Delete a class",
+        "description": "Fails if students are still assigned to this class.",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": {
+          "200": { "description": "Deleted" },
+          "400": { "description": "Cannot delete — students still in class" }
+        }
+      }
+    },
+
+    "/attendance": {
+      "get": {
+        "tags": ["Attendance"],
+        "summary": "List attendance records",
+        "parameters": [
+          { "name": "classId", "in": "query", "schema": { "type": "integer" } },
+          { "name": "date",    "in": "query", "schema": { "type": "string", "format": "date" } },
+          { "name": "from",    "in": "query", "schema": { "type": "string", "format": "date" } },
+          { "name": "to",      "in": "query", "schema": { "type": "string", "format": "date" } }
+        ],
+        "responses": { "200": { "description": "Attendance records (one row per class per date)" } }
+      },
+      "post": {
+        "tags": ["Attendance"],
+        "summary": "Mark attendance",
+        "description": "Upserts one row per (schoolId, classId, date). The `records` array contains per-student status.",
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AttendanceRecord" } } }
+        },
+        "responses": { "200": { "description": "Saved" } }
+      }
+    },
+
+    "/attendance/daily/{date}": {
+      "get": {
+        "tags": ["Attendance"],
+        "summary": "Get daily attendance summary",
+        "parameters": [
+          { "name": "date",    "in": "path",  "required": true, "schema": { "type": "string", "format": "date" } },
+          { "name": "classId", "in": "query", "schema": { "type": "integer" } }
+        ],
+        "responses": { "200": { "description": "Daily attendance rows" } }
+      }
+    },
+
+    "/chapters": {
+      "get": {
+        "tags": ["Chapters"],
+        "summary": "List chapters",
+        "parameters": [
+          { "name": "classNum",  "in": "query", "schema": { "type": "integer" }, "description": "e.g. 9" },
+          { "name": "subjectId", "in": "query", "schema": { "type": "string" },  "description": "e.g. Mathematics" }
+        ],
+        "responses": { "200": { "description": "Chapters ordered by classNum, chapterNumber" } }
+      },
+      "post": {
+        "tags": ["Chapters"],
+        "summary": "Create a chapter (principal/superadmin)",
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": {
+            "type": "object", "required": ["classNum","subjectId","chapterNumber","name"],
+            "properties": {
+              "classNum":      { "type": "integer", "example": 9 },
+              "subjectId":     { "type": "string",  "example": "Mathematics" },
+              "chapterNumber": { "type": "integer", "example": 1 },
+              "name":          { "type": "string",  "example": "Real Numbers" },
+              "periods":       { "type": "integer", "example": 8 },
+              "maxMarks":      { "type": "integer", "example": 25 },
+              "hasChapterTest":{ "type": "boolean", "example": true }
+            }
+          }}}
+        },
+        "responses": {
+          "201": { "description": "Chapter created" },
+          "400": { "description": "Duplicate chapter number for this class+subject" }
+        }
+      }
+    },
+
+    "/chapters/{id}": {
+      "patch": {
+        "tags": ["Chapters"],
+        "summary": "Update a chapter",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Chapter" } } } },
+        "responses": { "200": { "description": "Updated" }, "404": { "description": "Not found" } }
+      },
+      "delete": {
+        "tags": ["Chapters"],
+        "summary": "Delete a chapter",
+        "description": "Fails if assessments already exist for this chapter.",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": {
+          "200": { "description": "Deleted" },
+          "400": { "description": "Cannot delete — assessments exist for this chapter" }
+        }
+      }
+    },
+
+    "/assessments": {
+      "get": {
+        "tags": ["Assessments"],
+        "summary": "List assessments",
+        "parameters": [
+          { "name": "classNum",  "in": "query", "schema": { "type": "integer" } },
+          { "name": "subjectId", "in": "query", "schema": { "type": "string" } },
+          { "name": "section",   "in": "query", "schema": { "type": "string" } },
+          { "name": "type",      "in": "query", "schema": { "type": "string", "enum": ["chapter_test","class_test","unit_test","term_exam"] } }
+        ],
+        "responses": { "200": { "description": "Assessments with Chapter info included" } }
+      },
+      "post": {
+        "tags": ["Assessments"],
+        "summary": "Create an assessment",
+        "description": "For `chapter_test`, `chapterId` is required. Title and maxMarks are auto-filled from the chapter if not provided.",
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": {
+            "type": "object", "required": ["classNum","subjectId","type"],
+            "properties": {
+              "classNum":     { "type": "integer", "example": 9 },
+              "section":      { "type": "string",  "example": "A" },
+              "subjectId":    { "type": "string",  "example": "Mathematics" },
+              "type":         { "type": "string",  "enum": ["chapter_test","class_test","unit_test","term_exam"] },
+              "chapterId":    { "type": "integer",  "description": "Required for chapter_test" },
+              "title":        { "type": "string",   "description": "Auto-filled for chapter_test if omitted" },
+              "maxMarks":     { "type": "integer",  "example": 25 },
+              "passMarks":    { "type": "integer",  "example": 10 },
+              "scheduledFor": { "type": "string",   "format": "date" },
+              "academicYear": { "type": "string",   "example": "2025-26" },
+              "termId":       { "type": "string",   "example": "T1" }
+            }
+          }}}
+        },
+        "responses": {
+          "201": { "description": "Assessment created" },
+          "400": { "description": "chapterId required for chapter_test, or chapter disallows test" }
+        }
+      }
+    },
+
+    "/assessments/{id}/marks": {
+      "get": {
+        "tags": ["Assessments"],
+        "summary": "Get all marks for an assessment",
+        "description": "Returns all Mark rows with Student info included.",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "Marks list with Student" } }
+      }
+    },
+
+    "/assessments/{id}/marks/{studentId}": {
+      "patch": {
+        "tags": ["Assessments"],
+        "summary": "Enter / update a mark",
+        "description": "Upserts one mark. Triggers async `recomputeStudentMetrics` for that student.",
+        "parameters": [
+          { "name": "id",        "in": "path", "required": true, "schema": { "type": "integer" } },
+          { "name": "studentId", "in": "path", "required": true, "schema": { "type": "integer" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": {
+            "type": "object",
+            "properties": {
+              "marksObtained": { "type": "number",  "example": 20 },
+              "isAbsent":      { "type": "boolean", "example": false },
+              "tags":          { "type": "array",   "items": { "type": "string" } },
+              "note":          { "type": "string",  "nullable": true }
+            }
+          }}}
+        },
+        "responses": {
+          "200": { "description": "Mark saved" },
+          "400": { "description": "Marks out of range" },
+          "403": { "description": "Assessment published — cannot edit" }
+        }
+      }
+    },
+
+    "/assessments/{id}/submit": {
+      "post": {
+        "tags": ["Assessments"],
+        "summary": "Submit an assessment",
+        "description": "Sets status to `completed`. If chapter_test, sets chapter status to `done`. **Recomputes metrics for all students who have marks in this assessment.**",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "Assessment completed, metrics recomputed" } }
+      }
+    },
+
+    "/assessments/publish": {
+      "post": {
+        "tags": ["Assessments"],
+        "summary": "Publish term exam results (principal only)",
+        "description": "Sets all `completed` term_exam assessments for a given school + termId + classNum to `published`.",
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": {
+            "type": "object", "required": ["schoolId","termId","classNum"],
+            "properties": {
+              "schoolId": { "type": "integer" },
+              "termId":   { "type": "string",  "example": "T1" },
+              "classNum": { "type": "integer", "example": 9 }
+            }
+          }}}
+        },
+        "responses": { "200": { "description": "Assessments published" }, "403": { "description": "Only principals can publish" } }
+      }
+    },
+
+    "/behaviour/presets": {
+      "get": {
+        "tags": ["Behaviour"],
+        "summary": "List behaviour presets",
+        "description": "Returns all positive and negative behaviour event types with their score weights.",
+        "responses": { "200": { "description": "Presets list", "content": { "application/json": { "schema": {
+          "type": "object",
+          "properties": { "success": { "type": "boolean" }, "data": { "type": "array", "items": { "$ref": "#/components/schemas/BehaviourPreset" } } }
+        }}}} }
+      }
+    },
+
+    "/behaviour/logs": {
+      "get": {
+        "tags": ["Behaviour"],
+        "summary": "List behaviour logs",
+        "parameters": [
+          { "name": "studentId", "in": "query", "schema": { "type": "integer" } },
+          { "name": "classId",   "in": "query", "schema": { "type": "integer" } },
+          { "name": "from",      "in": "query", "schema": { "type": "string", "format": "date" } },
+          { "name": "to",        "in": "query", "schema": { "type": "string", "format": "date" } }
+        ],
+        "responses": { "200": { "description": "Behaviour logs" } }
+      },
+      "post": {
+        "tags": ["Behaviour"],
+        "summary": "Log a behaviour event",
+        "description": "Creates a behaviour log and triggers async `recomputeStudentMetrics`.",
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": {
+            "type": "object", "required": ["studentId","presetId"],
+            "properties": {
+              "studentId": { "type": "integer" },
+              "presetId":  { "type": "integer" },
+              "note":      { "type": "string", "nullable": true },
+              "date":      { "type": "string", "format": "date", "description": "Defaults to today" }
+            }
+          }}}
+        },
+        "responses": { "201": { "description": "Log created, metrics recomputed async" } }
+      }
+    },
+
+    "/fees": {
+      "get": {
+        "tags": ["Fees"],
+        "summary": "List fee records",
+        "parameters": [
+          { "name": "studentId", "in": "query", "schema": { "type": "integer" } },
+          { "name": "status",    "in": "query", "schema": { "type": "string", "enum": ["pending","paid","overdue"] } }
+        ],
+        "responses": { "200": { "description": "Fee records" } }
+      },
+      "post": {
+        "tags": ["Fees"],
+        "summary": "Create a fee record",
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Fee" } } }
+        },
+        "responses": { "201": { "description": "Fee record created" } }
+      }
+    },
+
+    "/fees/summary": {
+      "get": {
+        "tags": ["Fees"],
+        "summary": "Fee collection summary",
+        "parameters": [
+          { "name": "term",     "in": "query", "schema": { "type": "string" } },
+          { "name": "schoolId", "in": "query", "schema": { "type": "integer" } }
+        ],
+        "responses": { "200": { "description": "Total due, collected, pending amounts" } }
+      }
+    },
+
+    "/fees/{id}/collect": {
+      "put": {
+        "tags": ["Fees"],
+        "summary": "Record fee payment",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": {
+            "type": "object",
+            "properties": {
+              "amount":    { "type": "number", "example": 5000 },
+              "paymentMode": { "type": "string", "example": "UPI" }
+            }
+          }}}
+        },
+        "responses": { "200": { "description": "Payment recorded" } }
+      }
+    },
+
+    "/notifications": {
+      "get": {
+        "tags": ["Notifications"],
+        "summary": "List notifications for current user",
+        "parameters": [
+          { "name": "unread", "in": "query", "schema": { "type": "boolean" } }
+        ],
+        "responses": { "200": { "description": "Notifications list" } }
+      }
+    },
+
+    "/notifications/{id}/read": {
+      "patch": {
+        "tags": ["Notifications"],
+        "summary": "Mark notification as read",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "integer" } }],
+        "responses": { "200": { "description": "Marked read" } }
+      }
+    },
+
+    "/notifications/read-all": {
+      "patch": {
+        "tags": ["Notifications"],
+        "summary": "Mark all notifications as read",
+        "responses": { "200": { "description": "All marked read" } }
+      }
+    }
+
+  }
+}
