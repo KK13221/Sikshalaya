@@ -1,0 +1,1 @@
+I will view more of `ReportsView` to understand the rest of its rendering logic and see where we can integrate student report card selection and generation.

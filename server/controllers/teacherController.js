@@ -76,6 +76,9 @@ exports.createTeacher = async (req, res, next) => {
 
     await t.commit()
 
+    const { logActivity } = require('../services/activityService')
+    await logActivity(req, 'invited', `teacher ${name}`, { schoolId })
+
     // Send welcome email with credentials
     try {
       await sendWelcomeEmail({ name, email: email.toLowerCase(), tempPassword: actualPassword })
@@ -102,6 +105,36 @@ exports.updateTeacher = async (req, res, next) => {
     const teacher = await Teacher.findByPk(req.params.id)
     if (!teacher) return res.status(404).json({ success: false, message: 'Teacher not found' })
     await teacher.update(req.body)
+
+    let user = teacher.userId ? await User.findByPk(teacher.userId) : null
+    
+    if (user) {
+      let userUpdated = false
+      if (req.body.email && req.body.email !== user.email) {
+        user.email = req.body.email.toLowerCase()
+        userUpdated = true
+      }
+      if (req.body.password && req.body.password.trim() !== '') {
+        user.password = req.body.password.trim()
+        userUpdated = true
+      }
+      if (userUpdated) {
+        await user.save()
+      }
+    } else if (req.body.password && req.body.password.trim() !== '') {
+      // The teacher was created without a User account, so create one now
+      user = await User.create({
+        name: teacher.name,
+        email: (req.body.email || teacher.email).toLowerCase(),
+        password: req.body.password.trim(),
+        role: 'teacher',
+        schoolId: teacher.schoolId,
+        phone: teacher.phone,
+        isActive: true,
+      })
+      await teacher.update({ userId: user.id })
+    }
+
     res.json({ success: true, data: teacher })
   } catch (err) {
     next(err)
@@ -113,6 +146,8 @@ exports.deleteTeacher = async (req, res, next) => {
     const teacher = await Teacher.findByPk(req.params.id)
     if (!teacher) return res.status(404).json({ success: false, message: 'Teacher not found' })
     await teacher.update({ isActive: false })
+    const { logActivity } = require('../services/activityService')
+    await logActivity(req, 'removed', `teacher ${teacher.name}`, { schoolId: teacher.schoolId })
     res.json({ success: true, message: 'Teacher deactivated' })
   } catch (err) {
     next(err)
@@ -187,7 +222,7 @@ exports.pendingTasks = async (req, res, next) => {
           type: 'attendance',
           priority: 'urgent',
           title: `Attendance not taken for ${cls.name} ${cls.section}`,
-          actionRoute: `/classes/${cls.id}/attendance`,
+          actionRoute: `/attendance/${cls.id}`,
         })
       }
     }
@@ -204,7 +239,7 @@ exports.pendingTasks = async (req, res, next) => {
         type: 'marks',
         priority: 'reminder',
         title: `Marks pending: ${a.title}`,
-        actionRoute: `/marks/${a.id}`,
+        actionRoute: `/marks/entry/${a.id}`,
       })
     }
 
@@ -321,16 +356,45 @@ exports.enterMark = async (req, res, next) => {
     if (assessment.schoolId !== req.user.schoolId) return res.status(403).json({ success: false, message: 'Forbidden' })
     if (assessment.status === 'published') return res.status(403).json({ success: false, message: 'Cannot edit published assessment marks' })
 
-    const { marksObtained, isAbsent, tags, note } = req.body
-    if (!isAbsent && marksObtained != null) {
-      if (marksObtained < 0 || marksObtained > assessment.maxMarks) {
-        return res.status(400).json({ success: false, message: `Marks must be 0–${assessment.maxMarks}` })
+    const { marksObtained, writtenMarks, oralMarks, isAbsent, tags, note } = req.body
+
+    let finalMarks = marksObtained
+    let finalWritten = null
+    let finalOral = null
+
+    if (!isAbsent) {
+      if (assessment.type.startsWith('SA')) {
+        const w = parseFloat(writtenMarks) || 0
+        const o = parseFloat(oralMarks) || 0
+        if (w < 0 || w > 50) {
+          return res.status(400).json({ success: false, message: 'Written marks must be between 0 and 50' })
+        }
+        if (o < 0 || o > 10) {
+          return res.status(400).json({ success: false, message: 'Oral marks must be between 0 and 10' })
+        }
+        finalWritten = w
+        finalOral = o
+        finalMarks = w + o
+      } else if (assessment.type.startsWith('FA')) {
+        const m = parseFloat(marksObtained) || 0
+        if (m < 0 || m > 20) {
+          return res.status(400).json({ success: false, message: 'Formative marks must be between 0 and 20' })
+        }
+        finalMarks = m
+      } else {
+        const m = parseFloat(marksObtained) || 0
+        if (m < 0 || m > assessment.maxMarks) {
+          return res.status(400).json({ success: false, message: `Marks must be 0–${assessment.maxMarks}` })
+        }
+        finalMarks = m
       }
     }
 
     const [mark] = await Mark.upsert({
       assessmentId: Number(assessmentId), studentId: Number(studentId),
-      marksObtained: isAbsent ? null : marksObtained,
+      marksObtained: isAbsent ? null : finalMarks,
+      writtenMarks: isAbsent ? null : finalWritten,
+      oralMarks: isAbsent ? null : finalOral,
       isAbsent: !!isAbsent, tags: tags || [], note: note || null,
       enteredBy: req.user.id,
     }, { returning: true })

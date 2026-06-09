@@ -1,0 +1,68 @@
+Created At: 2026-06-05T08:48:11Z
+Completed At: 2026-06-05T08:48:11Z
+File Path: `file:///Users/shubhamjain/Documents/Kamlesh/Sikshalaya/scratch/step_704_VIEW_FILE_content.txt`
+Total Lines: 70
+Total Bytes: 4119
+Showing lines 1 to 70
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+1: Created At: 2026-06-03T10:19:02Z
+2: Completed At: 2026-06-03T10:19:02Z
+3: File Path: `file:///Users/shubhamjain/Documents/Kamlesh/Sikshalaya/src/pages/PrincipalAdmin.jsx`
+4: Total Lines: 2170
+5: Total Bytes: 120756
+6: Showing lines 1950 to 2010
+7: The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+8: 1950:       actions={<PrimaryBtn onClick={save} disabled={saving}>{saving ? 'Saving…' : saved ? '✓ Saved' : 'Save settings'}</PrimaryBtn>}>
+9: 1951:       {err && <div style={{ marginBottom: 12, padding: '8px 12px', background: `${C.red}10`, borderRadius: 6, fontSize: 12, color: C.red }}>{err}</div>}
+10: 1952:       {saved && <div style={{ marginBottom: 12, padding: '8px 12px', background: `${C.green}10`, borderRadius: 6, fontSize: 12, color: C.green }}>Settings saved successfully</div>}
+11: 1953:       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, maxWidth: 700 }}>
+12: 1954:         <div style={{ background: '#fff', borderRadius: 8, padding: 16, border: `1px solid ${C.lineFaint}`, gridColumn: 'span 2' }}>
+13: 1955:           <div style={{ fontSize: 14, fontWeight: 600, color: C.ink, marginBottom: 14 }}>Account info</div>
+14: 1956:           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+15: 1957:             {[['School ID', user?.schoolId ?? '—'], ['Role', user?.role ?? '—'], ['Email', user?.email ?? 
+<truncated 850 bytes>
+gories visible in the mobile app and admin panel.
+28: 1970:           </div>
+29: 1971:           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+30: 1972:             {field('Green (good) threshold %', 'greenThreshold', 'number', 'Students above this are green')}
+31: 1973:             {field('Yellow (average) threshold %', 'yellowThreshold', 'number', 'Students between yellow and green are yellow; below yellow are red')}
+32: 1974:           </div>
+33: 1975:         </div>
+34: 1976:       </div>
+35: 1977:     </PageShell>
+36: 1978:   )
+37: 1979: }
+38: 1980: 
+39: 1981: function TestTypesView() {
+40: 1982:   const [types, setTypes] = useState([])
+41: 1983:   const [loading, setLoading] = useState(true)
+42: 1984:   const [showAdd, setShowAdd] = useState(false)
+43: 1985:   const [editT, setEditT] = useState(null)
+44: 1986:   const [delTarget, setDelTarget] = useState(null)
+45: 1987:   const [deleting, setDeleting] = useState(false)
+46: 1988:   const [err, setErr] = useState('')
+47: 1989: 
+48: 1990:   const fetchTypes = useCallback(async () => {
+49: 1991:     try {
+50: 1992:       const res = await assessmentsApi.types.list()
+51: 1993:       setTypes(res.data.data || [])
+52: 1994:     } catch (e) {
+53: 1995:       console.error(e)
+54: 1996:     } finally {
+55: 1997:       setLoading(false)
+56: 1998:     }
+57: 1999:   }, [])
+58: 2000: 
+59: 2001:   useEffect(() => { fetchTypes() }, [fetchTypes])
+60: 2002: 
+61: 2003:   const deleteType = async () => {
+62: 2004:     if (!delTarget) return
+63: 2005:     setDeleting(true)
+64: 2006:     try {
+65: 2007:       await assessmentsApi.types.remove(delTarget.id)
+66: 2008:       setTypes(t => t.filter(x => x.id !== delTarget.id))
+67: 2009:       setDelTarget(null)
+68: 2010:     } catch (e) {
+69: The above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.
+70: 
+The above content shows the entire, complete file contents of the requested file.

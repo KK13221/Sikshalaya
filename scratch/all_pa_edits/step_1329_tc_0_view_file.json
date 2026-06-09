@@ -1,0 +1,10 @@
+{
+  "name": "view_file",
+  "args": {
+    "AbsolutePath": "\"/Users/shubhamjain/Documents/Kamlesh/Sikshalaya/src/pages/PrincipalAdmin.jsx\"",
+    "EndLine": "550",
+    "StartLine": "443",
+    "toolAction": "\"Viewing UnderperformersView at line 443\"",
+    "toolSummary": "\"Read UnderperformersView at 443\""
+  }
+}

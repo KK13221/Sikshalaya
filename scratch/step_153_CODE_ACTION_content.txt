@@ -1,0 +1,14 @@
+Created At: 2026-06-02T14:18:51Z
+Completed At: 2026-06-02T14:18:51Z
+The following changes were made by the replace_file_content tool to: /Users/shubhamjain/.gemini/antigravity/brain/f7a0b14d-8a6e-4317-9440-6e98c0661b0f/task.md. If relevant, proactively run terminal commands to execute this code for the USER. Don't ask for permission.
+[diff_block_start]
+@@ -4,5 +4,5 @@
+ - [x] Update `server/services/metricsService.js` to respect `showInReport` in metrics computation
+ - [x] Modify `src/pages/PrincipalAdmin.jsx` - TestTypesView and TestTypeModal to support editing and viewing `showInReport`
+ - [x] Implement Academic Reports section in `src/pages/PrincipalAdmin.jsx` (ReportsView)
+-- [/] Verify changes locally and deploy/test
++- [x] Verify changes locally and deploy/test
+ 
+[diff_block_end]
+
+Please note that the above snippet only shows the MODIFIED lines from the last change. It shows up to 3 lines of unchanged lines before and after the modified lines. The actual file contents may have many more lines not shown.

@@ -60,7 +60,7 @@ class StudentProfileScreen extends ConsumerWidget {
                       CircleAvatar(
                         radius: 28,
                         backgroundColor: AppColors.blue.withOpacity(0.10),
-                        child: Text(student.name.split(' ').map((w) => w[0]).take(2).join(), style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.blue, fontSize: 15)),
+                        child: Text(student.name.split(' ').where((w) => w.isNotEmpty).map((w) => w[0]).take(2).join(), style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.blue, fontSize: 15)),
                       ),
                       const SizedBox(height: 8),
                       Text(student.name, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
@@ -122,20 +122,27 @@ class _OverviewTab extends StatelessWidget {
             padding: const EdgeInsets.all(12),
             child: Row(
               children: [
-                const CircleAvatar(radius: 16, backgroundColor: AppColors.lineFaint, child: Text('P', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.muted))),
+                CircleAvatar(
+                  radius: 16, 
+                  backgroundColor: AppColors.lineFaint, 
+                  child: Text(student.guardianName != null && student.guardianName!.isNotEmpty ? student.guardianName![0].toUpperCase() : 'P', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.muted))
+                ),
                 const SizedBox(width: 10),
-                const Expanded(
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Mr. Suresh Pillai', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
-                      Text('Father · primary contact', style: TextStyle(fontSize: 10, color: AppColors.muted)),
+                      Text(student.guardianName ?? 'Unknown Guardian', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                      Text('${student.guardianRelation ?? "Parent"} · primary contact', style: const TextStyle(fontSize: 10, color: AppColors.muted)),
                     ],
                   ),
                 ),
-                _IconBtn(icon: Icons.phone, color: AppColors.blue, onTap: () {}),
-                const SizedBox(width: 6),
-                _IconBtn(icon: Icons.email, color: AppColors.green, onTap: () {}),
+                if (student.guardianPhone != null && student.guardianPhone!.isNotEmpty)
+                  _IconBtn(icon: Icons.phone, color: AppColors.blue, onTap: () {}),
+                if (student.guardianEmail != null && student.guardianEmail!.isNotEmpty) ...[
+                  const SizedBox(width: 6),
+                  _IconBtn(icon: Icons.email, color: AppColors.green, onTap: () {}),
+                ],
               ],
             ),
           ),
@@ -204,7 +211,8 @@ class _MarksTab extends ConsumerWidget {
       return const Center(child: Text('No marks recorded.', style: TextStyle(color: AppColors.muted)));
     }
 
-    final avg = marks.map((m) => m['percentage'] as double).reduce((a, b) => a + b) / marks.length;
+    final validMarks = marks.where((m) => m['percentage'] != null).toList();
+    final avg = validMarks.isEmpty ? 0.0 : validMarks.map((m) => (m['percentage'] as num).toDouble()).reduce((a, b) => a + b) / validMarks.length;
 
     return ListView(
       padding: const EdgeInsets.all(14),
@@ -236,7 +244,7 @@ class _MarksTab extends ConsumerWidget {
         const Text('Assessment History', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.muted)),
         const SizedBox(height: 6),
         ...marks.map((m) {
-          final pct = m['percentage'] as double;
+          final pct = (m['percentage'] as num?)?.toDouble() ?? 0.0;
           Color pctColor = AppColors.green;
           if (pct < 75) {
             pctColor = AppColors.red;
@@ -244,7 +252,7 @@ class _MarksTab extends ConsumerWidget {
             pctColor = AppColors.yellow;
           }
 
-          final date = m['date'] as DateTime;
+          final date = m['date'] is DateTime ? m['date'] as DateTime : DateTime.tryParse(m['date'].toString()) ?? DateTime.now();
           final dateStr = '${date.day} ${_monthName(date.month)}';
 
           return Card(
@@ -257,7 +265,7 @@ class _MarksTab extends ConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text('${m['score'].toInt()}/${m['maxMarks'].toInt()}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                  Text('${(m['score'] as num?)?.toInt() ?? '-'}/${(m['maxMarks'] as num?)?.toInt() ?? '-'}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(color: pctColor.withOpacity(0.12), borderRadius: BorderRadius.circular(4)),
@@ -322,9 +330,9 @@ class _AttendanceTab extends ConsumerWidget {
         const Text('Daily Logs (Last 30 Days)', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.muted)),
         const SizedBox(height: 6),
         ...attendance.map((a) {
-          final date = a['date'] as DateTime;
+          final date = a['date'] is DateTime ? a['date'] as DateTime : DateTime.tryParse(a['date'].toString()) ?? DateTime.now();
           final dateStr = '${date.day} ${_monthName(date.month)}, ${_weekday(date.weekday)}';
-          final status = a['status'] as String;
+          final status = (a['status'] as String?) ?? 'Unknown';
 
           Color statusColor = AppColors.green;
           IconData statusIcon = Icons.check_circle_outline;

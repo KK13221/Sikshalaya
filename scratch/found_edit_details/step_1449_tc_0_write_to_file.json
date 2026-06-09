@@ -1,0 +1,13 @@
+{
+  "name": "write_to_file",
+  "args": {
+    "ArtifactMetadata": "{\"ArtifactType\":\"other\",\"RequestFeedback\":false,\"Summary\":\"Recovery script to search for reverted code.\"}",
+    "CodeContent": "\"import os, json\\n\\ndef find_file(start_dir, name):\\n    for root, dirs, files in os.walk(start_dir):\\n        if name in files:\\n            return os.path.join(root, name)\\n    return None\\n\\npath = find_file(\\\"/Users/shubhamjain/.gemini/antigravity/brain/f7a0b14d-8a6e-4317-9440-6e98c0661b0f\\\", \\\"transcript.jsonl\\\")\\nprint(\\\"Found transcript.jsonl:\\\", path)\\n\\nif path:\\n    with open(path, \\\"r\\\") as f:\\n        for line in f:\\n            if \\\"TestTypesView\\\" in line:\\n                # Find tool_calls or content\\n                try:\\n                    obj = json.loads(line)\\n                    # print some info\\n                    print(\\\"Step:\\\", obj.get(\\\"step_index\\\"), \\\"Type:\\\", obj.get(\\\"type\\\"))\\n                    if \\\"tool_calls\\\" in obj:\\n                        for tc in obj[\\\"tool_calls\\\"]:\\n                            if \\\"TestTypesView\\\" in str(tc):\\n                                print(\\\"Found in tool call arguments!\\\")\\n                                # print the arguments key containing the code\\n                                args = tc.get(\\\"arguments\\\", {})\\n                                for k, v in args.items():\\n                                    if \\\"TestTypesView\\\" in str(v):\\n                                        print(f\\\"Arg {k}:\\\")\\n                                        print(str(v)[:2000] + \\\"...\\\")\\n                except Exception as e:\\n                    pass\\n\"",
+    "Description": "\"Create recovery script\"",
+    "IsArtifact": "false",
+    "Overwrite": "true",
+    "TargetFile": "\"/Users/shubhamjain/Documents/Kamlesh/Sikshalaya/scratch/recover.py\"",
+    "toolAction": "\"Writing recover.py script\"",
+    "toolSummary": "\"Write recovery script\""
+  }
+}

@@ -13,6 +13,8 @@ const User = sequelize.define('User', {
   avatar:    { type: DataTypes.STRING(500) },
   isActive:  { type: DataTypes.BOOLEAN, defaultValue: true },
   lastLogin: { type: DataTypes.DATE },
+  normsAcceptedVersion: { type: DataTypes.INTEGER, defaultValue: 0 },
+  normsAcceptedAt:      { type: DataTypes.DATE },
 }, {
   tableName: 'users',
   hooks: {

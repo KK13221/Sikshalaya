@@ -11,6 +11,8 @@ router.route('/')
   .get(c.getStudents)
   .post(authorize('superadmin', 'principal'), c.createStudent)
 
+router.post('/bulk', authorize('superadmin', 'principal'), c.bulkCreateStudents)
+
 router.get('/:id/metrics', c.getMetrics)
 router.patch('/:id/acknowledge', c.acknowledgeUnderperformer)
 router.route('/:id')

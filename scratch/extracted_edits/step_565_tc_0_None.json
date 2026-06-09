@@ -1,0 +1,11 @@
+{
+  "name": "view_file",
+  "args": {
+    "AbsolutePath": "\"/Users/shubhamjain/Documents/Kamlesh/Sikshalaya/src/pages/PrincipalAdmin.jsx\"",
+    "EndLine": "2148",
+    "IsSkillFile": "false",
+    "StartLine": "2110",
+    "toolAction": "\"Read PrincipalAdmin component router\"",
+    "toolSummary": "\"Read PrincipalAdmin.jsx\""
+  }
+}

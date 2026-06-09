@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'config/theme.dart';
 import 'features/auth/screens/login_screen.dart';
 import 'features/auth/screens/splash_screen.dart';
+import 'features/auth/screens/norms_screen.dart';
 import 'features/attendance/attendance_screen.dart';
 import 'features/classes/class_detail_screen.dart';
 import 'features/classes/class_list_screen.dart';
@@ -97,6 +98,7 @@ final GoRouter _router = GoRouter(
   routes: [
     GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
     GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
+    GoRoute(path: '/norms', builder: (context, state) => const NormsScreen()),
     ShellRoute(
       builder: (context, state, child) => HomeShell(child: child),
       routes: [

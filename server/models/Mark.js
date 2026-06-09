@@ -6,6 +6,8 @@ const Mark = sequelize.define('Mark', {
   assessmentId:   { type: DataTypes.INTEGER, allowNull: false },
   studentId:      { type: DataTypes.INTEGER, allowNull: false },
   marksObtained:  { type: DataTypes.FLOAT },
+  writtenMarks:   { type: DataTypes.FLOAT },
+  oralMarks:      { type: DataTypes.FLOAT },
   isAbsent:       { type: DataTypes.BOOLEAN, defaultValue: false },
   tags:           { type: DataTypes.JSON, defaultValue: [] },
   note:           { type: DataTypes.TEXT },

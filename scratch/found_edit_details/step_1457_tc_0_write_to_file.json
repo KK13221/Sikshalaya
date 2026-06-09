@@ -1,0 +1,13 @@
+{
+  "name": "write_to_file",
+  "args": {
+    "ArtifactMetadata": "{\"ArtifactType\":\"other\",\"RequestFeedback\":false,\"Summary\":\"Modified recovery script to inspect the structure of transcript entries.\"}",
+    "CodeContent": "\"import os, json\\n\\npath = \\\"/var/www/shikshalaya-frontend\\\" # wait, the path we found is:\\npath = \\\"/Users/shubhamjain/.gemini/antigravity/brain/f7a0b14d-8a6e-4317-9440-6e98c0661b0f/.system_generated/logs/transcript.jsonl\\\"\\n\\nwith open(path, \\\"r\\\") as f:\\n    for line in f:\\n        obj = json.loads(line)\\n        if \\\"TestTypesView\\\" in line:\\n            # Let's print keys and some snippets of values to see what's there\\n            print(\\\"Step:\\\", obj.get(\\\"step_index\\\"), \\\"Type:\\\", obj.get(\\\"type\\\"), \\\"Keys:\\\", list(obj.keys()))\\n            if \\\"tool_calls\\\" in obj:\\n                print(\\\"  Tool calls count:\\\", len(obj[\\\"tool_calls\\\"]))\\n                for tc in obj[\\\"tool_calls\\\"]:\\n                    print(\\\"    Tool name:\\\", tc.get(\\\"name\\\"), \\\"Keys:\\\", list(tc.keys()))\\n                    args = tc.get(\\\"arguments\\\", {})\\n                    print(\\\"    Args keys:\\\", list(args.keys()))\\n                    for k, v in args.items():\\n                        if \\\"TestTypesView\\\" in str(v):\\n                            print(f\\\"      Arg {k} contains TestTypesView. Length: {len(str(v))}\\\")\\n            if \\\"content\\\" in obj:\\n                print(\\\"  Content length:\\\", len(obj[\\\"content\\\"]))\\n                if \\\"TestTypesView\\\" in obj[\\\"content\\\"]:\\n                    print(\\\"  Content contains TestTypesView\\\")\\n            print(\\\"-\\\" * 40)\\n\"",
+    "Description": "\"Update recovery structure check\"",
+    "IsArtifact": "false",
+    "Overwrite": "true",
+    "TargetFile": "\"/Users/shubhamjain/Documents/Kamlesh/Sikshalaya/scratch/recover_full.py\"",
+    "toolAction": "\"Writing recover_full.py structure check\"",
+    "toolSummary": "\"Write full recovery script\""
+  }
+}

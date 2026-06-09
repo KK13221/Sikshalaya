@@ -14,11 +14,14 @@ class ClassListScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(title: const Text('My classes', style: TextStyle(fontWeight: FontWeight.w700))),
-      body: ListView.separated(
-        padding: const EdgeInsets.all(14),
-        itemCount: classes.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 10),
-        itemBuilder: (context, i) => _ClassCard(info: classes[i]),
+      body: RefreshIndicator(
+        onRefresh: () => ref.read(classListProvider.notifier).loadClasses(),
+        child: ListView.separated(
+          padding: const EdgeInsets.all(14),
+          itemCount: classes.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 10),
+          itemBuilder: (context, i) => _ClassCard(info: classes[i]),
+        ),
       ),
     );
   }

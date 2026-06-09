@@ -45,6 +45,9 @@ router.post('/', authorize('superadmin'), userRules, async (req, res, next) => {
     if (schoolId && role === 'principal') {
       await School.update({ principalId: user.id }, { where: { id: schoolId } })
     }
+    const { logActivity } = require('../services/activityService')
+    await logActivity(req, 'invited', `${role} ${name}`, { schoolId })
+
     res.status(201).json({
       success: true,
       data: { ...user.toJSON(), password: undefined },
@@ -73,6 +76,8 @@ router.delete('/:id', authorize('superadmin'), async (req, res, next) => {
     if (!user) return res.status(404).json({ success: false, message: 'User not found' })
     if (user.id === req.user.id) return res.status(400).json({ success: false, message: 'Cannot delete yourself' })
     await user.update({ isActive: false })
+    const { logActivity } = require('../services/activityService')
+    await logActivity(req, 'deactivated', `${user.role} ${user.name}`, { schoolId: user.schoolId })
     res.json({ success: true, message: 'User deactivated' })
   } catch (err) {
     next(err)

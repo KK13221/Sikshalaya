@@ -9,7 +9,7 @@ const Assessment = sequelize.define('Assessment', {
   subjectId:    { type: DataTypes.STRING(50), allowNull: false },
   academicYear: { type: DataTypes.STRING(10), defaultValue: '2025-26' },
   termId:       { type: DataTypes.STRING(5) },
-  type:         { type: DataTypes.ENUM('chapter_test','class_test','unit_test','term_exam'), allowNull: false },
+  type:         { type: DataTypes.STRING(50), allowNull: false },
   chapterId:    { type: DataTypes.INTEGER },
   unitNumber:   { type: DataTypes.INTEGER },
   title:        { type: DataTypes.STRING(300), allowNull: false },

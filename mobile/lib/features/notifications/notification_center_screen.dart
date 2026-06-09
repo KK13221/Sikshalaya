@@ -39,7 +39,15 @@ class _NotificationCenterScreenState extends ConsumerState<NotificationCenterScr
   void _handleTap(BuildContext context, AppNotification n) {
     switch (n.category) {
       case 'underperformer':
-        context.push('/student/s3');
+        final admMatch = RegExp(r'ADM10(\d{2})').firstMatch(n.subtitle);
+        if (admMatch != null) {
+          final sId = int.parse(admMatch.group(1)!).toString();
+          context.push('/student/$sId');
+        } else {
+          final fallbackMatch = RegExp(r'\d+').firstMatch(n.subtitle);
+          final sId = fallbackMatch != null ? fallbackMatch.group(0) : '3';
+          context.push('/student/$sId');
+        }
       case 'attendance_overdue':
         context.push('/attendance/c3');
       case 'marks_due':
@@ -75,69 +83,74 @@ class _NotificationCenterScreenState extends ConsumerState<NotificationCenterScr
             ),
           ),
           Expanded(
-            child: ListView.separated(
-              padding: const EdgeInsets.all(14),
-              itemCount: items.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 8),
-              itemBuilder: (context, i) {
-                final n = items[i];
-                final col = _priorityColor(n.priority);
-                return GestureDetector(
-                  onTap: () => _handleTap(context, n),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border.all(color: AppColors.lineFaint),
-                      borderRadius: BorderRadius.circular(10),
-                      boxShadow: [BoxShadow(color: col.withOpacity(0.0), blurRadius: 0)],
-                    ),
-                    child: IntrinsicHeight(
-                      child: Row(
-                        children: [
-                          Container(width: 4, decoration: BoxDecoration(color: col, borderRadius: const BorderRadius.horizontal(left: Radius.circular(10)))),
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.all(12),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Container(
-                                    width: 28, height: 28,
-                                    decoration: BoxDecoration(color: col.withOpacity(0.12), shape: BoxShape.circle),
-                                    alignment: Alignment.center,
-                                    child: Text(_priorityIcon(n.priority), style: TextStyle(color: col, fontWeight: FontWeight.w800, fontSize: 12)),
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            Text(_priorityLabel(n.priority), style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: col, letterSpacing: 0.5)),
-                                            const SizedBox(width: 4),
-                                            Text('· ${n.timeAgo}', style: const TextStyle(fontSize: 9, color: AppColors.muted)),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 2),
-                                        Text(n.title, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
-                                        const SizedBox(height: 2),
-                                        Text(n.subtitle, style: const TextStyle(fontSize: 10, color: AppColors.muted)),
-                                      ],
+            child: RefreshIndicator(
+              onRefresh: () => ref.read(notificationsProvider.notifier).loadNotifications(),
+              color: AppColors.blue,
+              child: ListView.separated(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(14),
+                itemCount: items.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 8),
+                itemBuilder: (context, i) {
+                  final n = items[i];
+                  final col = _priorityColor(n.priority);
+                  return GestureDetector(
+                    onTap: () => _handleTap(context, n),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        border: Border.all(color: AppColors.lineFaint),
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: [BoxShadow(color: col.withOpacity(0.0), blurRadius: 0)],
+                      ),
+                      child: IntrinsicHeight(
+                        child: Row(
+                          children: [
+                            Container(width: 4, decoration: BoxDecoration(color: col, borderRadius: const BorderRadius.horizontal(left: Radius.circular(10)))),
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.all(12),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                      width: 28, height: 28,
+                                      decoration: BoxDecoration(color: col.withOpacity(0.12), shape: BoxShape.circle),
+                                      alignment: Alignment.center,
+                                      child: Text(_priorityIcon(n.priority), style: TextStyle(color: col, fontWeight: FontWeight.w800, fontSize: 12)),
                                     ),
-                                  ),
-                                  if (n.unread)
-                                    Container(width: 7, height: 7, margin: const EdgeInsets.only(top: 4), decoration: BoxDecoration(color: col, shape: BoxShape.circle)),
-                                ],
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Text(_priorityLabel(n.priority), style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: col, letterSpacing: 0.5)),
+                                              const SizedBox(width: 4),
+                                              Text('· ${n.timeAgo}', style: const TextStyle(fontSize: 9, color: AppColors.muted)),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(n.title, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                                          const SizedBox(height: 2),
+                                          Text(n.subtitle, style: const TextStyle(fontSize: 10, color: AppColors.muted)),
+                                        ],
+                                      ),
+                                    ),
+                                    if (n.unread)
+                                      Container(width: 7, height: 7, margin: const EdgeInsets.only(top: 4), decoration: BoxDecoration(color: col, shape: BoxShape.circle)),
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
           ),
         ],

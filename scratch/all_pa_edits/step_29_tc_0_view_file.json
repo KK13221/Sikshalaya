@@ -1,0 +1,10 @@
+{
+  "name": "view_file",
+  "args": {
+    "AbsolutePath": "\"/Users/shubhamjain/Documents/Kamlesh/Sikshalaya/src/pages/PrincipalAdmin.jsx\"",
+    "EndLine": "1780",
+    "StartLine": "1600",
+    "toolAction": "\"Viewing PrincipalAdmin.jsx reports section\"",
+    "toolSummary": "\"Viewing reports UI code\""
+  }
+}

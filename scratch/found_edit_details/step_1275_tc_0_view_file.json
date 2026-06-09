@@ -1,0 +1,10 @@
+{
+  "name": "view_file",
+  "args": {
+    "AbsolutePath": "\"/Users/shubhamjain/Documents/Kamlesh/Sikshalaya/src/pages/PrincipalAdmin.jsx\"",
+    "EndLine": "2080",
+    "StartLine": "2006",
+    "toolAction": "\"Viewing TestTypesView in PrincipalAdmin.jsx\"",
+    "toolSummary": "\"Read TestTypesView\""
+  }
+}

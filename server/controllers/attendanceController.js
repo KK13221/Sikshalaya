@@ -33,5 +33,16 @@ exports.markAttendance = async (req, res) => {
     defaults: { records: normalized },
   })
   if (!created) await attendance.update({ records: normalized })
+
+  try {
+    const { Class } = require('../models')
+    const cls = await Class.findByPk(classId, { attributes: ['name', 'section'] })
+    const classLabel = cls ? `${cls.name}-${cls.section}` : 'class'
+    const { logActivity } = require('../services/activityService')
+    await logActivity(req, 'modified', `attendance for ${classLabel}`, { schoolId })
+  } catch (err) {
+    console.error('Failed to log attendance activity:', err)
+  }
+
   res.json({ success: true, data: attendance })
 }

@@ -1,0 +1,15 @@
+{
+  "name": "replace_file_content",
+  "args": {
+    "AllowMultiple": "false",
+    "Description": "\"Mark task 5 as complete in task.md\"",
+    "EndLine": "6",
+    "Instruction": "\"Update checklist progress\"",
+    "ReplacementContent": "\"- [x] Modify `src/pages/PrincipalAdmin.jsx` - TestTypesView and TestTypeModal to support editing and viewing `showInReport`\\n- [/] Implement Academic Reports section in `src/pages/PrincipalAdmin.jsx` (ReportsView)\"",
+    "StartLine": "5",
+    "TargetContent": "\"- [/] Modify `src/pages/PrincipalAdmin.jsx` - TestTypesView and TestTypeModal to support editing and viewing `showInReport`\\n- [ ] Implement Academic Reports section in `src/pages/PrincipalAdmin.jsx` (ReportsView)\"",
+    "TargetFile": "\"/Users/shubhamjain/.gemini/antigravity/brain/f7a0b14d-8a6e-4317-9440-6e98c0661b0f/task.md\"",
+    "toolAction": "\"Updating task.md file\"",
+    "toolSummary": "\"Updating task.md\""
+  }
+}

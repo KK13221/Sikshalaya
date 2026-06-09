@@ -71,9 +71,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     if (!mounted) return;
 
     ref.read(currentUserProvider.notifier).state = user;
-    ref.read(classListProvider.notifier).loadClasses();
-    ref.read(notificationsProvider.notifier).loadNotifications();
-    context.go('/home');
+    if (user.requiresNormsAcceptance) {
+      context.go('/norms');
+    } else {
+      ref.read(classListProvider.notifier).loadClasses();
+      ref.read(notificationsProvider.notifier).loadNotifications();
+      context.go('/home');
+    }
   }
 
   @override

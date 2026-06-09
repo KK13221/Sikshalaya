@@ -1,0 +1,12 @@
+{
+  "name": "grep_search",
+  "args": {
+    "CaseInsensitive": "false",
+    "IsRegex": "false",
+    "MatchPerLine": "true",
+    "Query": "\"function TestTypesView\"",
+    "SearchPath": "\"/Users/shubhamjain/Documents/Kamlesh/Sikshalaya/src/pages/PrincipalAdmin.jsx\"",
+    "toolAction": "\"Finding TestTypesView definition\"",
+    "toolSummary": "\"Find TestTypesView line number\""
+  }
+}

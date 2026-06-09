@@ -1,5 +1,5 @@
 const { Op } = require('sequelize')
-const { Student, Class, Teacher } = require('../models')
+const { Student, Class, Teacher, SchoolSettings } = require('../models')
 
 const schoolWhere = (req) =>
   req.user.role === 'superadmin' ? {} : { schoolId: req.user.schoolId }
@@ -30,6 +30,16 @@ exports.getOverview = async (req, res) => {
     order: [['name', 'ASC']],
   })
 
+  let greenThreshold = 75
+  let yellowThreshold = 50
+  if (where.schoolId) {
+    const settings = await SchoolSettings.findOne({ where: { schoolId: where.schoolId } })
+    if (settings) {
+      greenThreshold = settings.greenThreshold ?? 75
+      yellowThreshold = settings.yellowThreshold ?? 50
+    }
+  }
+
   const green = [], yellow = [], red = []
 
   for (const s of students) {
@@ -50,8 +60,8 @@ exports.getOverview = async (req, res) => {
       class: s.Class ? `${s.Class.name} ${s.Class.section}` : null,
     }
 
-    if (combined >= 75) green.push(entry)
-    else if (combined >= 50) yellow.push(entry)
+    if (combined >= greenThreshold) green.push(entry)
+    else if (combined >= yellowThreshold) yellow.push(entry)
     else red.push(entry)
   }
 
@@ -90,6 +100,31 @@ exports.createStudent = async (req, res) => {
   if (rest.dateOfBirth === '') rest.dateOfBirth = null
   const student = await Student.create({ ...rest, schoolId })
   res.status(201).json({ success: true, data: student })
+}
+
+exports.bulkCreateStudents = async (req, res) => {
+  const schoolId = req.user.role === 'superadmin' ? (req.body.schoolId || req.user.schoolId) : req.user.schoolId
+  const students = req.body.students || []
+  
+  const created = []
+  for (let i = 0; i < students.length; i++) {
+    const s = students[i]
+    const { schoolId: _ignored, ...rest } = s
+    if (rest.classId === '') rest.classId = null
+    if (rest.rollNo === '') rest.rollNo = null
+    if (rest.dateOfBirth === '') rest.dateOfBirth = null
+    if (!rest.admissionNo || rest.admissionNo.trim() === '') {
+      rest.admissionNo = `ADM-${Date.now().toString(36).toUpperCase()}-${i}`
+    }
+    try {
+      const st = await Student.create({ ...rest, schoolId })
+      created.push(st)
+    } catch(e) {
+      // ignore individual failures for bulk
+      console.error('Bulk import error for student:', rest.name, e.message)
+    }
+  }
+  res.status(201).json({ success: true, count: created.length })
 }
 
 exports.updateStudent = async (req, res) => {

@@ -1,0 +1,72 @@
+Created At: 2026-06-02T14:14:23Z
+Completed At: 2026-06-02T14:14:23Z
+File Path: `file:///Users/shubhamjain/Documents/Kamlesh/Sikshalaya/src/pages/PrincipalAdmin.jsx`
+Total Lines: 1985
+Total Bytes: 111088
+Showing lines 1910 to 1980
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+1910:           <p style={{ fontSize: 13, color: C.ink, margin: 0 }}>This action cannot be undone. If this test type is currently used by existing assessments, the deletion will be blocked.</p>
+1911:         </Modal>
+1912:       )}
+1913:     </PageShell>
+1914:   )
+1915: }
+1916: 
+1917: function TestTypeModal({ type, onClose, onSave }) {
+1918:   const [form, setForm] = useState(type ? { ...type } : { code: '', label: '', sublabel: '', color: 'blue' })
+1919:   const [saving, setSaving] = useState(false)
+1920:   const [err, setErr] = useState('')
+1921: 
+1922:   const save = async () => {
+1923:     if (!form.code || !form.label || !form.color) return setErr('Code, label, and color are required.')
+1924:     
+1925:     setSaving(true); setErr('')
+1926:     try {
+1927:       let res;
+1928:       if (type) res = await assessmentsApi.types.update(type.id, form)
+1929:       else res = await assessmentsApi.types.create(form)
+1930:       onSave(res.data.data)
+1931:     } catch (e) {
+1932:       setErr(e.response?.data?.message || 'Save failed')
+1933:     } finally {
+1934:       setSaving(false)
+1935:     }
+1936:   }
+1937: 
+1938:   const field = (label, key, placeholder, readOnly = false) => (
+1939:     <div style={{ marginBottom: 12 }}>
+1940:       <label style={{ display: 'block', fontSize: 11, fontWeight: 500, color: C.muted, marginBottom: 5 }}>{label}</label>
+1941:       <input type="text" value={form[key] ?? ''} onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))} placeholder={placeholder} readOnly={readOnly}
+1942:         style={{ width: '100%', p
+<truncated 791 bytes>
+51:       {field('Label (Display name)', 'label', 'e.g. Mock Exam')}
+1952:       {field('Sublabel (Optional context)', 'sublabel', 'e.g. Pre-board prep')}
+1953:       <div style={{ marginBottom: 12 }}>
+1954:         <label style={{ display: 'block', fontSize: 11, fontWeight: 500, color: C.muted, marginBottom: 5 }}>Theme Color</label>
+1955:         <select value={form.color} onChange={e => setForm(f => ({ ...f, color: e.target.value }))}
+1956:           style={{ width: '100%', padding: '8px 10px', borderRadius: 4, fontSize: 13, border: `1px solid ${C.lineFaint}`, outline: 'none', boxSizing: 'border-box', background: '#fff' }}>
+1957:           <option value="blue">Blue</option>
+1958:           <option value="green">Green</option>
+1959:           <option value="yellow">Yellow</option>
+1960:           <option value="red">Red</option>
+1961:         </select>
+1962:       </div>
+1963:     </Modal>
+1964:   )
+1965: }
+1966: 
+1967: 
+1968: /* ── MAIN ────────────────────────────────────────────────────────────────── */
+1969: export default function PrincipalAdmin({ activeView = 'dashboard' }) {
+1970:   switch (activeView) {
+1971:     case 'classes':          return <ClassesView />
+1972:     case 'teachers':         return <TeachersView />
+1973:     case 'students':         return <StudentsView />
+1974:     case 'underperformers':  return <UnderperformersView />
+1975:     case 'attendance':       return <AttendanceView />
+1976:     case 'marks':            return <MarksView />
+1977:     case 'curriculum':       return <CurriculumView />
+1978:     case 'reports':          return <ReportsView />
+1979:     case 'notices':          return <NoticesView />
+1980:     case 'test-types':       return <TestTypesView />
+The above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.

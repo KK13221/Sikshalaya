@@ -1,0 +1,28 @@
+Created At: 2026-06-05T08:49:05Z
+Completed At: 2026-06-05T08:49:05Z
+File Path: `file:///Users/shubhamjain/Documents/Kamlesh/Sikshalaya/scratch/step_108_CODE_ACTION_content.txt`
+Total Lines: 20
+Total Bytes: 1628
+Showing lines 1 to 20
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+1: Created At: 2026-06-02T14:17:07Z
+2: Completed At: 2026-06-02T14:17:07Z
+3: The following changes were made by the replace_file_content tool to: /Users/shubhamjain/.gemini/antigravity/brain/f7a0b14d-8a6e-4317-9440-6e98c0661b0f/task.md. If relevant, proactively run terminal commands to execute this code for the USER. Don't ask for permission.
+4: [diff_block_start]
+5: @@ -1,8 +1,8 @@
+6:  - [x] Alter MySQL table `assessment_types` on production VPS to add `showInReport` column
+7: -- [/] Modify `server/models/AssessmentType.js` to include the `showInReport` field
+8: -- [ ] Modify `server/controllers/assessmentController.js` to handle `showInReport`
+9: -- [ ] Update `server/services/metricsService.js` to respect `showInReport` in metrics computation
+10: -- [ ] Modify `src/pages/PrincipalAdmin.jsx` - TestTypesView and TestTypeModal to support editing and viewing `showInReport`
+11: +- [x] Modify `server/models/AssessmentType.js` to include the `showInReport` field
+12: +- [x] Modify `server/controllers/assessmentController.js` to handle `showInReport`
+13: +- [x] Update `server/services/metricsService.js` to respect `showInReport` in metrics computation
+14: +- [/] Modify `src/pages/PrincipalAdmin.jsx` - TestTypesView and TestTypeModal to support editing and viewing `showInReport`
+15:  - [ ] Implement Academic Reports section in `src/pages/PrincipalAdmin.jsx` (ReportsView)
+16:  - [ ] Verify changes locally and deploy/test
+17:  
+18: [diff_block_end]
+19: 
+20: Please note that the above snippet only shows the MODIFIED lines from the last change. It shows up to 3 lines of unchanged lines before and after the modified lines. The actual file contents may have many more lines not shown.
+The above content shows the entire, complete file contents of the requested file.

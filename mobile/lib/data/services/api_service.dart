@@ -90,6 +90,19 @@ class ApiService {
     await deleteToken();
   }
 
+  Future<bool> acceptNorms() async {
+    try {
+      final response = await _dio.post('/auth/accept-norms');
+      if (response.statusCode == 200 && response.data != null) {
+        final data = response.data as Map<String, dynamic>;
+        return data['success'] == true;
+      }
+    } catch (e) {
+      print('AcceptNorms error: $e');
+    }
+    return false;
+  }
+
   // ─── Dashboard ────────────────────────────────────────────────────────────
 
   Future<Map<String, dynamic>> getDashboard() async {
@@ -228,13 +241,72 @@ class ApiService {
     return [];
   }
 
-  Future<bool> saveMark(String assessmentId, String studentId, double marks, bool isAbsent) async {
+  Future<Assessment?> getAssessment(String id) async {
+    try {
+      final response = await _dio.get('/assessments');
+      if (response.statusCode == 200 && response.data != null) {
+        final data = response.data as Map<String, dynamic>;
+        if (data['success'] == true && data['data'] != null) {
+          final list = (data['data'] as List);
+          final found = list.firstWhere((a) => a['id'].toString() == id, orElse: () => null);
+          if (found != null) {
+            return Assessment.fromJson(found as Map<String, dynamic>);
+          }
+        }
+      }
+    } catch (e) {
+      print('GetAssessment error: $e');
+    }
+    return null;
+  }
+
+  Future<Assessment?> createAssessment({
+    required String classId,
+    required String type,
+    required String subjectId,
+    String? chapterId,
+    int? maxMarks,
+  }) async {
+    try {
+      final response = await _dio.post('/assessments', data: {
+        'classNum': classId,
+        'section': 'A', // Default to A, ideally we should pass it
+        'type': type,
+        'subjectId': subjectId,
+        'chapterId': chapterId,
+        if (maxMarks != null) 'maxMarks': maxMarks,
+      });
+      if (response.statusCode == 201 && response.data != null) {
+        final data = response.data as Map<String, dynamic>;
+        if (data['success'] == true && data['data'] != null) {
+          return Assessment.fromJson(data['data'] as Map<String, dynamic>);
+        }
+      }
+    } catch (e) {
+      print('CreateAssessment error: $e');
+    }
+    return null;
+  }
+
+  Future<bool> submitAssessment(String assessmentId) async {
+    try {
+      final response = await _dio.post('/assessments/$assessmentId/submit');
+      return response.statusCode == 200;
+    } catch (e) {
+      print('SubmitAssessment error: $e');
+      return false;
+    }
+  }
+
+  Future<bool> saveMark(String assessmentId, String studentId, double marks, bool isAbsent, {double? writtenMarks, double? oralMarks}) async {
     try {
       final response = await _dio.patch(
         '/assessments/$assessmentId/marks/$studentId',
         data: {
           'marksObtained': marks,
           'isAbsent': isAbsent,
+          'writtenMarks': writtenMarks,
+          'oralMarks': oralMarks,
           'tags': [],
           'note': '',
         },
@@ -244,6 +316,23 @@ class ApiService {
       print('SaveMark error: $e');
       return false;
     }
+  }
+
+  Future<List<AssessmentType>> getAssessmentTypes() async {
+    try {
+      final response = await _dio.get('/assessments/types');
+      if (response.statusCode == 200 && response.data != null) {
+        final data = response.data as Map<String, dynamic>;
+        if (data['success'] == true && data['data'] != null) {
+          return (data['data'] as List)
+              .map((e) => AssessmentType.fromJson(e as Map<String, dynamic>))
+              .toList();
+        }
+      }
+    } catch (e) {
+      print('GetAssessmentTypes error: $e');
+    }
+    return [];
   }
 
   Future<List<Map<String, dynamic>>> getStudentMarks(String studentId) async {
@@ -427,6 +516,19 @@ class ApiService {
       print('GetChapters error: $e');
     }
     return [];
+  }
+
+  Future<Map<String, dynamic>?> getPerformanceSummary() async {
+    try {
+      final response = await _dio.get('/teacher-performance/me/summary');
+      if (response.statusCode == 200 && response.data != null) {
+        final data = response.data as Map<String, dynamic>;
+        return data['data'] as Map<String, dynamic>? ?? data;
+      }
+    } catch (e) {
+      print('GetPerformanceSummary error: $e');
+    }
+    return null;
   }
 }
 

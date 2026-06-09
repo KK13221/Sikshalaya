@@ -1,0 +1,69 @@
+Created At: 2026-06-05T08:48:28Z
+Completed At: 2026-06-05T08:48:28Z
+File Path: `file:///Users/shubhamjain/Documents/Kamlesh/Sikshalaya/scratch/step_32_VIEW_FILE_content.txt`
+Total Lines: 73
+Total Bytes: 4119
+Showing lines 1 to 73
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+1: Created At: 2026-06-02T14:14:23Z
+2: Completed At: 2026-06-02T14:14:23Z
+3: File Path: `file:///Users/shubhamjain/Documents/Kamlesh/Sikshalaya/src/pages/PrincipalAdmin.jsx`
+4: Total Lines: 1985
+5: Total Bytes: 111088
+6: Showing lines 1910 to 1980
+7: The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+8: 1910:           <p style={{ fontSize: 13, color: C.ink, margin: 0 }}>This action cannot be undone. If this test type is currently used by existing assessments, the deletion will be blocked.</p>
+9: 1911:         </Modal>
+10: 1912:       )}
+11: 1913:     </PageShell>
+12: 1914:   )
+13: 1915: }
+14: 1916: 
+15: 1917: function TestTypeModal({ type, onClose, onSave }) {
+16: 1918:   const [form, setForm] = useState(type ? { ...type } : { code: '', label: '', sublabel: '', color: 'blue' })
+17: 1919:   const [saving, setSaving] = useState(false)
+18: 1920:   const [err, setErr] = useState('')
+19: 1921: 
+20: 1922:   const save = async () => {
+21: 1923:     if (!form.code || !form.label || !form.color) return setErr('Code, label, and color are required.')
+22: 1924:     
+23: 1925:     setSaving(true); setErr('')
+24: 1926:     try {
+25: 1927:       let res;
+26: 1928:       if (type) res = await assessmentsApi.types.update(type.id, form)
+27: 1929:       else res = await assessmentsApi.types.create(form)
+28: 1930:       onSave(res.data.data)
+29: 1931:     } catch (e) {
+30: 1932:   
+<truncated 861 bytes>
+}>
+45: 1954:         <label style={{ display: 'block', fontSize: 11, fontWeight: 500, color: C.muted, marginBottom: 5 }}>Theme Color</label>
+46: 1955:         <select value={form.color} onChange={e => setForm(f => ({ ...f, color: e.target.value }))}
+47: 1956:           style={{ width: '100%', padding: '8px 10px', borderRadius: 4, fontSize: 13, border: `1px solid ${C.lineFaint}`, outline: 'none', boxSizing: 'border-box', background: '#fff' }}>
+48: 1957:           <option value="blue">Blue</option>
+49: 1958:           <option value="green">Green</option>
+50: 1959:           <option value="yellow">Yellow</option>
+51: 1960:           <option value="red">Red</option>
+52: 1961:         </select>
+53: 1962:       </div>
+54: 1963:     </Modal>
+55: 1964:   )
+56: 1965: }
+57: 1966: 
+58: 1967: 
+59: 1968: /* ── MAIN ────────────────────────────────────────────────────────────────── */
+60: 1969: export default function PrincipalAdmin({ activeView = 'dashboard' }) {
+61: 1970:   switch (activeView) {
+62: 1971:     case 'classes':          return <ClassesView />
+63: 1972:     case 'teachers':         return <TeachersView />
+64: 1973:     case 'students':         return <StudentsView />
+65: 1974:     case 'underperformers':  return <UnderperformersView />
+66: 1975:     case 'attendance':       return <AttendanceView />
+67: 1976:     case 'marks':            return <MarksView />
+68: 1977:     case 'curriculum':       return <CurriculumView />
+69: 1978:     case 'reports':          return <ReportsView />
+70: 1979:     case 'notices':          return <NoticesView />
+71: 1980:     case 'test-types':       return <TestTypesView />
+72: The above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.
+73: 
+The above content shows the entire, complete file contents of the requested file.

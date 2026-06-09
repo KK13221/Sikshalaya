@@ -38,10 +38,22 @@ const connectDB = async () => {
     } else {
       console.log('✅ MySQL connected')
     }
-    // SQLite: just create missing tables — alter breaks on SQLite with existing indexed data
-    // MySQL: alter to pick up new columns without losing data
-    await sequelize.sync(useSQLite ? {} : { alter: true })
+    // MySQL: alter to pick up new columns without losing data (disabled to avoid max keys error in prod)
+    await sequelize.sync()
     console.log('✅ Database tables synced')
+    
+    // Seed AssessmentTypes if empty
+    const AssessmentType = require('../models/AssessmentType')
+    const count = await AssessmentType.count()
+    if (count === 0) {
+      await AssessmentType.bulkCreate([
+        { code: 'chapter', label: 'Chapter Test', sublabel: 'After every chapter', color: 'blue' },
+        { code: 'class', label: 'Class Test', sublabel: 'Sample paper (you create)', color: 'green' },
+        { code: 'unit', label: 'Unit Test', sublabel: '3-monthly · scheduled', color: 'yellow' },
+        { code: 'term', label: 'Term Examination', sublabel: 'End of term', color: 'red' },
+      ])
+      console.log('✅ Default Assessment Types seeded')
+    }
   } catch (err) {
     console.error('❌ Database connection failed:', err)
     process.exit(1)

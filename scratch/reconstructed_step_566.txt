@@ -1,0 +1,47 @@
+Created At: 2026-06-03T10:13:09Z
+Completed At: 2026-06-03T10:13:10Z
+File Path: `file:///Users/shubhamjain/Documents/Kamlesh/Sikshalaya/src/pages/PrincipalAdmin.jsx`
+Total Lines: 2148
+Total Bytes: 119571
+Showing lines 2110 to 2148
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+2110:       {field('Sublabel (Optional context)', 'sublabel', 'e.g. Pre-board prep')}
+2111:       <div style={{ marginBottom: 12 }}>
+2112:         <label style={{ display: 'block', fontSize: 11, fontWeight: 500, color: C.muted, marginBottom: 5 }}>Theme Color</label>
+2113:         <select value={form.color} onChange={e => setForm(f => ({ ...f, color: e.target.value }))}
+2114:           style={{ width: '100%', padding: '8px 10px', borderRadius: 4, fontSize: 13, border: `1px solid ${C.lineFaint}`, outline: 'none', boxSizing: 'border-box', background: '#fff' }}>
+2115:           <option value="blue">Blue</option>
+2116:           <option value="green">Green</option>
+2117:           <option value="yellow">Yellow</option>
+2118:           <option value="red">Red</option>
+2119:         </select>
+2120:       </div>
+2121:       <div style={{ marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+2122:         <input type="checkbox" id="showInReport" checked={form.showInReport !== false} onChange={e => setForm(f => ({ ...f, showInReport: e.target.checked }))}
+2123:           style={{ width: 16, height: 16, cursor: 'pointer' }} />
+2124:         <label htmlFor="showInReport" style={{ fontSize: 13, fontWeight: 500, color: C.ink, cursor: 'pointer' }}>Show in academic report</label>
+2125:       </div>
+2126:     </Modal>
+2127:   )
+2128: }
+2129: 
+2130: 
+2131: /* ── MAIN ────────────────────────────────────────────────────────────────── */
+2132: export default function PrincipalAdmin({ activeView = 'dashboard' }) {
+2133:   switch (activeView) {
+2134:     case 'classes':          return <ClassesView />
+2135:     case 'teachers':         return <TeachersView />
+2136:     case 'students':         return <StudentsView />
+2137:     case 'underperformers':  return <UnderperformersView />
+2138:     case 'attendance':       return <AttendanceView />
+2139:     case 'marks':            return <MarksView />
+2140:     case 'curriculum':       return <CurriculumView />
+2141:     case 'reports':          return <ReportsView />
+2142:     case 'notices':          return <NoticesView />
+2143:     case 'test-types':       return <TestTypesView />
+2144:     case 'settings':         return <SettingsView />
+2145:     default:                 return <DashboardView />
+2146:   }
+2147: }
+2148: 
+The above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.

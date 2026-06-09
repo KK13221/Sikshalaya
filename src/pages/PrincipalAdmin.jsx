@@ -22,6 +22,14 @@ const PrimaryBtn = ({ children, onClick, disabled }) => (
 const DangerBtn = ({ children, onClick }) => (
   <button onClick={onClick} style={{ padding: '3px 8px', fontSize: 11, borderRadius: 4, background: `${C.red}15`, color: C.red, border: 'none', cursor: 'pointer', fontWeight: 600 }}>{children}</button>
 )
+const IconButton = ({ onClick, icon, variant }) => {
+  const isDanger = variant === 'danger'
+  return (
+    <button onClick={onClick} style={{ padding: '4px 6px', fontSize: 12, borderRadius: 4, background: isDanger ? `${C.red}15` : `${C.blue}15`, color: isDanger ? C.red : C.blue, border: 'none', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+      {icon}
+    </button>
+  )
+}
 
 function PageShell({ title, breadcrumbs, actions, children }) {
   return (
@@ -444,6 +452,7 @@ function UnderperformersView() {
   const [rows, setRows] = useState([])
   const [loading, setLoading] = useState(true)
   const [err, setErr] = useState('')
+  const [search, setSearch] = useState('')
 
   useEffect(() => {
     setLoading(true)
@@ -475,10 +484,26 @@ function UnderperformersView() {
 
   const classLabel = (s) => s.Class ? `${s.Class.name}-${s.Class.section}` : s.section || '—'
 
+  const filteredRows = rows.filter(r => {
+    const q = search.toLowerCase()
+    return (
+      (r.name || '').toLowerCase().includes(q) ||
+      (r.rollNo || '').toLowerCase().includes(q) ||
+      (r.admissionNo || '').toLowerCase().includes(q) ||
+      classLabel(r).toLowerCase().includes(q)
+    )
+  })
+
   return (
     <PageShell title={`Students needing attention${!loading ? ` (${rows.length})` : ''}`}
       breadcrumbs="Branch · Students · Underperformers"
       actions={<>
+        <input
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder="Search students…"
+          style={{ padding: '6px 10px', borderRadius: 4, fontSize: 12, border: `1.5px solid ${C.lineFaint}`, outline: 'none', width: 180 }}
+        />
         <Pill color={C.red}>&lt; 75% in any dimension</Pill>
         <Pill color={C.blue} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>👁 Teachers + Principal</Pill>
         <GhostBtn>Notify class teachers</GhostBtn>
@@ -499,7 +524,7 @@ function UnderperformersView() {
         ].map(([label, val, sub, color], i) => (
           <div key={i} style={{ background: '#fff', borderRadius: 8, padding: 14, border: `1px solid ${C.lineFaint}`, borderTop: `3px solid ${color}` }}>
             <div style={{ fontSize: 11, color: C.muted, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</div>
-            <div style={{ fontSize: 28, fontWeight: 700, color }}>{loading ? '…' : val}</div>
+            <div style={{ fontSize: 28, fontWeight: 700, color: loading ? C.muted : color }}>{loading ? '…' : val}</div>
             <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>{sub}</div>
           </div>
         ))}
@@ -519,14 +544,18 @@ function UnderperformersView() {
           <div style={{ padding: 40, textAlign: 'center', color: C.muted, fontSize: 13 }}>
             No students flagged — all performing above 75% 🎉
           </div>
-        ) : rows.map((r, i) => {
+        ) : filteredRows.length === 0 ? (
+          <div style={{ padding: 40, textAlign: 'center', color: C.muted, fontSize: 13 }}>
+            No matching students found.
+          </div>
+        ) : filteredRows.map((r, i) => {
           const dims = [
             flag(r.academicsPct)  && 'Acad',
             flag(r.punctualityPct) && 'Punc',
             flag(r.behaviourScore) && 'Behv',
           ].filter(Boolean)
           return (
-            <div key={r.id} style={{ display: 'grid', gridTemplateColumns: '1.8fr 0.7fr 0.8fr 1.1fr 1.1fr 1.1fr 1fr', padding: '12px 14px', borderBottom: i < rows.length-1 ? `1px solid ${C.lineFaint}` : 'none', fontSize: 12, alignItems: 'center', background: i % 2 === 0 ? '#fff' : '#FAFBFC' }}>
+            <div key={r.id} style={{ display: 'grid', gridTemplateColumns: '1.8fr 0.7fr 0.8fr 1.1fr 1.1fr 1.1fr 1fr', padding: '12px 14px', borderBottom: i < filteredRows.length-1 ? `1px solid ${C.lineFaint}` : 'none', fontSize: 12, alignItems: 'center', background: i % 2 === 0 ? '#fff' : '#FAFBFC' }}>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                 <div style={{ width: 18, height: 18, borderRadius: '50%', background: C.red, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 800, flexShrink: 0 }}>!</div>
                 <div style={{ width: 26, height: 26, borderRadius: '50%', background: `${C.red}20`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9, fontWeight: 700, color: C.red, flexShrink: 0 }}>
@@ -757,6 +786,7 @@ function ClassesView() {
   const [editC, setEditC] = useState(null)
   const [delTarget, setDelTarget] = useState(null)
   const [deleting, setDeleting] = useState(false)
+  const [search, setSearch] = useState('')
 
   const load = useCallback(() => {
     setLoading(true)
@@ -776,9 +806,27 @@ function ClassesView() {
     finally { setDeleting(false) }
   }
 
+  const filteredClasses = classes.filter(c => {
+    const q = search.toLowerCase()
+    return (
+      (c.name || '').toLowerCase().includes(q) ||
+      (c.section || '').toLowerCase().includes(q) ||
+      (c.classTeacher?.name || '').toLowerCase().includes(q) ||
+      (c.subjects || []).some(sub => sub.toLowerCase().includes(q))
+    )
+  })
+
   return (
     <PageShell title={`Classes & Sections (${classes.length})`} breadcrumbs="Branch"
-      actions={canManageClasses ? <PrimaryBtn onClick={() => setShowAdd(true)}>+ New section</PrimaryBtn> : null}>
+      actions={<>
+        <input
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder="Search classes…"
+          style={{ padding: '6px 10px', borderRadius: 4, fontSize: 12, border: `1.5px solid ${C.lineFaint}`, outline: 'none', width: 180 }}
+        />
+        {canManageClasses ? <PrimaryBtn onClick={() => setShowAdd(true)}>+ New section</PrimaryBtn> : null}
+      </>}>
 
       {canManageClasses && showAdd && <ClassModal onClose={() => setShowAdd(false)} onSaved={() => { setShowAdd(false); load() }} />}
       {canManageClasses && editC && <ClassModal cls={editC} onClose={() => setEditC(null)} onSaved={() => { setEditC(null); load() }} />}
@@ -792,9 +840,13 @@ function ClassesView() {
         <div style={{ background: '#fff', borderRadius: 8, padding: 40, border: `1px solid ${C.lineFaint}`, textAlign: 'center', color: C.muted, fontSize: 13 }}>
           No classes yet — click "+ New section" to add one.
         </div>
+      ) : filteredClasses.length === 0 ? (
+        <div style={{ background: '#fff', borderRadius: 8, padding: 40, border: `1px solid ${C.lineFaint}`, textAlign: 'center', color: C.muted, fontSize: 13 }}>
+          No matching classes found.
+        </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12 }}>
-          {classes.map(c => (
+          {filteredClasses.map(c => (
             <div key={c.id} style={{ background: '#fff', borderRadius: 8, padding: 14, border: `1px solid ${C.lineFaint}`, borderTop: c.classTeacher ? `3px solid ${C.green}` : `3px solid ${C.lineFaint}` }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
                 <div>
@@ -850,6 +902,7 @@ function AttendanceView() {
   const [saved, setSaved] = useState(false)
   const [dirty, setDirty] = useState(false)  // true = user changed something since last save
   const [lastSync, setLastSync] = useState(null)
+  const [search, setSearch] = useState('')
   const intervalRef = useRef(null)
 
   useEffect(() => {
@@ -861,6 +914,7 @@ function AttendanceView() {
     if (!selClass) { setStudents([]); setRecords({}); return }
     setSaved(false)
     setDirty(false)
+    setSearch('')
     Promise.all([
       studentsApi.list({ classId: selClass, limit: 100 }),
       attendanceApi.list({ classId: selClass, date }),
@@ -944,6 +998,15 @@ function AttendanceView() {
   const absent  = Object.values(records).filter(s => _norm(s) === 'absent').length
   const late    = Object.values(records).filter(s => _norm(s) === 'late').length
 
+  const filteredStudents = students.filter(s => {
+    const q = search.toLowerCase()
+    return (
+      (s.name || '').toLowerCase().includes(q) ||
+      (s.rollNo || '').toLowerCase().includes(q) ||
+      (s.admissionNo || '').toLowerCase().includes(q)
+    )
+  })
+
   return (
     <PageShell title="Mark attendance" breadcrumbs="Branch"
       actions={<>
@@ -954,6 +1017,14 @@ function AttendanceView() {
           <option value="">Select class…</option>
           {classes.map(c => <option key={c.id} value={c.id}>{c.name}-{c.section}</option>)}
         </select>
+        {selClass && (
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search student…"
+            style={{ padding: '6px 10px', borderRadius: 4, fontSize: 12, border: `1.5px solid ${C.lineFaint}`, outline: 'none', width: 140 }}
+          />
+        )}
         {selClass && <GhostBtn onClick={() => {
           const sm = { P: 'present', A: 'absent', L: 'late', p: 'present', a: 'absent', l: 'late' }
           const nm = s => sm[s] || s || 'present'
@@ -990,23 +1061,27 @@ function AttendanceView() {
             <div style={{ padding: '10px 14px', fontSize: 12, color: C.muted, borderBottom: `1px solid ${C.lineFaint}` }}>
               Tap a student to cycle: Present → Absent → Late → Present
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 0 }}>
-              {students.map((s, i) => {
-                const status = _norm(records[String(s.id)] || 'present')
-                return (
-                  <div key={s.id} onClick={() => canMarkAttendance && toggle(s.id)} style={{ padding: '12px 14px', borderBottom: `1px solid ${C.lineFaint}`, borderRight: (i+1)%4!==0 ? `1px solid ${C.lineFaint}` : 'none', display: 'flex', alignItems: 'center', gap: 10, cursor: canMarkAttendance ? 'pointer' : 'default', background: status === 'absent' ? `${C.red}06` : status === 'late' ? `${C.yellow}06` : '#fff', transition: 'background 0.1s' }}>
-                    <div style={{ width: 28, height: 28, borderRadius: '50%', background: `${statusColor(status)}20`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: statusColor(status), flexShrink: 0 }}>
-                      {s.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}
+            {filteredStudents.length === 0 ? (
+              <div style={{ padding: 20, textAlign: 'center', color: C.muted, fontSize: 13 }}>No matching students found.</div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 0 }}>
+                {filteredStudents.map((s, i) => {
+                  const status = _norm(records[String(s.id)] || 'present')
+                  return (
+                    <div key={s.id} onClick={() => canMarkAttendance && toggle(s.id)} style={{ padding: '12px 14px', borderBottom: `1px solid ${C.lineFaint}`, borderRight: (i+1)%4!==0 ? `1px solid ${C.lineFaint}` : 'none', display: 'flex', alignItems: 'center', gap: 10, cursor: canMarkAttendance ? 'pointer' : 'default', background: status === 'absent' ? `${C.red}06` : status === 'late' ? `${C.yellow}06` : '#fff', transition: 'background 0.1s' }}>
+                      <div style={{ width: 28, height: 28, borderRadius: '50%', background: `${statusColor(status)}20`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: statusColor(status), flexShrink: 0 }}>
+                        {s.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 12, fontWeight: 600, color: C.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</div>
+                        <div style={{ fontSize: 10, color: C.muted }}>#{s.rollNo || s.admissionNo}</div>
+                      </div>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: statusColor(status), textTransform: 'uppercase' }}>{status[0]}</span>
                     </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 12, fontWeight: 600, color: C.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</div>
-                      <div style={{ fontSize: 10, color: C.muted }}>#{s.rollNo || s.admissionNo}</div>
-                    </div>
-                    <span style={{ fontSize: 10, fontWeight: 700, color: statusColor(status), textTransform: 'uppercase' }}>{status[0]}</span>
-                  </div>
-                )
-              })}
-            </div>
+                  )
+                })}
+              </div>
+            )}
           </div>
         </>
       )}
@@ -1028,6 +1103,7 @@ function MarksView() {
   const [selClassId, setSelClassId] = useState('')
   const [assessments, setAssessments] = useState([])
   const [loading, setLoading] = useState(false)
+  const [search, setSearch] = useState('')
 
   useEffect(() => {
     classesApi.list().then(r => {
@@ -1059,9 +1135,23 @@ function MarksView() {
 
   const pending = bySubject.filter(s => s.pct < 100).length
 
+  const filteredAssessments = assessments.filter(a => {
+    const q = search.toLowerCase()
+    return (
+      (a.title || '').toLowerCase().includes(q) ||
+      (a.subjectId || '').toLowerCase().includes(q)
+    )
+  })
+
   return (
     <PageShell title="Marks & results" breadcrumbs="Branch"
       actions={<>
+        <input
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder="Search assessments…"
+          style={{ padding: '6px 10px', borderRadius: 4, fontSize: 12, border: `1.5px solid ${C.lineFaint}`, outline: 'none', width: 180 }}
+        />
         <select value={selClassId} onChange={e=>setSelClassId(e.target.value)} style={{ padding: '6px 10px', borderRadius: 4, fontSize: 12, border: `1.5px solid ${C.lineFaint}`, outline: 'none' }}>
           <option value="">Select class…</option>
           {classes.map(c => <option key={c.id} value={c.id}>{c.name}-{c.section}</option>)}
@@ -1125,10 +1215,12 @@ function MarksView() {
               <div style={{ padding: 24, textAlign: 'center', color: C.muted, fontSize: 12 }}>Loading…</div>
             ) : assessments.length === 0 ? (
               <div style={{ padding: 32, textAlign: 'center', color: C.muted, fontSize: 12 }}>No assessments found for this type and class</div>
-            ) : assessments.map((a, i) => {
+            ) : filteredAssessments.length === 0 ? (
+              <div style={{ padding: 32, textAlign: 'center', color: C.muted, fontSize: 12 }}>No matching assessments found</div>
+            ) : filteredAssessments.map((a, i) => {
               const col = a.status === 'published' ? C.green : a.status === 'completed' ? C.blue : a.status === 'active' ? C.yellow : C.muted
               return (
-                <div key={a.id} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', padding: '10px 14px', borderBottom: i < assessments.length-1 ? `1px solid ${C.lineFaint}` : 'none', fontSize: 12, alignItems: 'center' }}>
+                <div key={a.id} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', padding: '10px 14px', borderBottom: i < filteredAssessments.length-1 ? `1px solid ${C.lineFaint}` : 'none', fontSize: 12, alignItems: 'center' }}>
                   <div>
                     <div style={{ fontWeight: 600, color: C.ink }}>{a.title}</div>
                     <div style={{ fontSize: 10, color: C.muted }}>{a.subjectId} · Max {a.maxMarks}</div>
@@ -1156,6 +1248,7 @@ function CurriculumView() {
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState({ no: '', name: '', periods: '', maxMarks: '20' })
   const [addErr, setAddErr] = useState('')
+  const [search, setSearch] = useState('')
 
   useEffect(() => {
     classesApi.list().then(r => {
@@ -1177,6 +1270,7 @@ function CurriculumView() {
     if (!cls) return
     const classNum = parseInt(cls.name.replace(/\D/g, ''), 10) || 0
     setLoading(true)
+    setSearch('')
     chaptersApi.list({ classNum, subjectId: selSubject })
       .then(r => setChapters(r.data.data || []))
       .catch(console.error)
@@ -1212,6 +1306,14 @@ function CurriculumView() {
   const done = chapters.filter(c => c.status === 'done').length
   const inProgress = chapters.filter(c => c.status === 'in_progress').length
 
+  const filteredChapters = chapters.filter(c => {
+    const q = search.toLowerCase()
+    return (
+      String(c.chapterNumber).includes(q) ||
+      (c.name || '').toLowerCase().includes(q)
+    )
+  })
+
   return (
     <PageShell title={`Chapters — ${selClass ? `${selClass.name}-${selClass.section}` : '…'} · ${selSubject || '…'}`}
       breadcrumbs={`Branch · Curriculum`}
@@ -1224,6 +1326,14 @@ function CurriculumView() {
           <option value="">Select subject…</option>
           {subjects.map(s => <option key={s}>{s}</option>)}
         </select>
+        {selSubject && (
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search chapters…"
+            style={{ padding: '6px 10px', borderRadius: 4, fontSize: 12, border: `1.5px solid ${C.lineFaint}`, outline: 'none', width: 140 }}
+          />
+        )}
         <GhostBtn>Import from CBSE</GhostBtn>
       </>}>
 
@@ -1245,8 +1355,10 @@ function CurriculumView() {
               <div style={{ padding: 24, textAlign: 'center', color: C.muted, fontSize: 12 }}>Loading…</div>
             ) : chapters.length === 0 ? (
               <div style={{ padding: 32, textAlign: 'center', color: C.muted, fontSize: 12 }}>No chapters yet — add one using the form →</div>
-            ) : chapters.map((c, i) => (
-              <div key={c.id} style={{ display: 'grid', gridTemplateColumns: '56px 2.4fr 80px 120px 80px 40px', padding: '12px 14px', borderBottom: i < chapters.length-1 ? `1px solid ${C.lineFaint}` : 'none', fontSize: 12, alignItems: 'center', background: c.status === 'in_progress' ? `${C.blue}05` : '#fff' }}>
+            ) : filteredChapters.length === 0 ? (
+              <div style={{ padding: 32, textAlign: 'center', color: C.muted, fontSize: 12 }}>No matching chapters found</div>
+            ) : filteredChapters.map((c, i) => (
+              <div key={c.id} style={{ display: 'grid', gridTemplateColumns: '56px 2.4fr 80px 120px 80px 40px', padding: '12px 14px', borderBottom: i < filteredChapters.length-1 ? `1px solid ${C.lineFaint}` : 'none', fontSize: 12, alignItems: 'center', background: c.status === 'in_progress' ? `${C.blue}05` : '#fff' }}>
                 <div style={{ fontFamily: 'ui-monospace,monospace', fontWeight: 700, color: statusColor(c.status), fontSize: 11 }}>Ch.{c.chapterNumber}</div>
                 <div style={{ fontWeight: c.status === 'in_progress' ? 600 : 500, color: C.ink }}>{c.name}</div>
                 <div style={{ color: C.muted }}>{c.periods || '—'}</div>
@@ -1317,6 +1429,7 @@ function NoticesView() {
   const [form, setForm] = useState({ title: '', body: '', priority: 'info', audience: 'All teachers' })
   const [saving, setSaving] = useState(false)
   const [err, setErr] = useState('')
+  const [search, setSearch] = useState('')
 
   const AUDIENCES = ['All teachers', 'Class teachers', 'All staff']
   const PRIORITIES = [
@@ -1361,16 +1474,35 @@ function NoticesView() {
     return `${Math.floor(h / 24)}d ago`
   }
 
+  const filteredNotices = notices.filter(n => {
+    const q = search.toLowerCase()
+    return (
+      (n.title || '').toLowerCase().includes(q) ||
+      (n.body || '').toLowerCase().includes(q) ||
+      (n.audience || '').toLowerCase().includes(q)
+    )
+  })
+
   return (
     <PageShell title="Notices & announcements" breadcrumbs="Branch"
-      actions={<Pill color={C.green}>Teachers see these in the mobile app</Pill>}>
+      actions={<>
+        <input
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder="Search notices…"
+          style={{ padding: '6px 10px', borderRadius: 4, fontSize: 12, border: `1.5px solid ${C.lineFaint}`, outline: 'none', width: 180 }}
+        />
+        <Pill color={C.green}>Teachers see these in the mobile app</Pill>
+      </>}>
       <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 16 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {loading ? (
             <div style={{ background: '#fff', borderRadius: 8, padding: 32, border: `1px solid ${C.lineFaint}`, textAlign: 'center', color: C.muted, fontSize: 13 }}>Loading…</div>
           ) : notices.length === 0 ? (
             <div style={{ background: '#fff', borderRadius: 8, padding: 32, border: `1px solid ${C.lineFaint}`, textAlign: 'center', color: C.muted, fontSize: 13 }}>No notices yet — create one →</div>
-          ) : notices.map((n) => (
+          ) : filteredNotices.length === 0 ? (
+            <div style={{ background: '#fff', borderRadius: 8, padding: 32, border: `1px solid ${C.lineFaint}`, textAlign: 'center', color: C.muted, fontSize: 13 }}>No matching notices found</div>
+          ) : filteredNotices.map((n) => (
             <div key={n.id} style={{ background: '#fff', borderRadius: 8, padding: 14, border: `1px solid ${C.lineFaint}`, borderLeft: `3px solid ${priorityColor(n.priority)}` }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div style={{ flex: 1 }}>
@@ -1433,6 +1565,7 @@ function ReportsView() {
   const [attendanceData, setAttendanceData] = useState(null)
   const [students, setStudents] = useState([])
   const [loading, setLoading] = useState(false)
+  const [search, setSearch] = useState('')
 
   useEffect(() => {
     classesApi.list().then(r => {
@@ -1445,6 +1578,7 @@ function ReportsView() {
   useEffect(() => {
     if (!selClassId) return
     setLoading(true)
+    setSearch('')
     Promise.all([
       attendanceApi.list({ classId: selClassId, date }),
       studentsApi.list({ classId: selClassId, limit: 200 }),
@@ -1474,9 +1608,24 @@ function ReportsView() {
     a.click()
   }
 
+  const filteredStudents = students.filter(s => {
+    const q = search.toLowerCase()
+    return (
+      (s.name || '').toLowerCase().includes(q) ||
+      (s.rollNo || '').toLowerCase().includes(q) ||
+      (s.admissionNo || '').toLowerCase().includes(q)
+    )
+  })
+
   return (
     <PageShell title="Reports" breadcrumbs="Branch"
       actions={<>
+        <input
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder="Search students…"
+          style={{ padding: '6px 10px', borderRadius: 4, fontSize: 12, border: `1.5px solid ${C.lineFaint}`, outline: 'none', width: 140 }}
+        />
         <input type="date" value={date} onChange={e => setDate(e.target.value)}
           style={{ padding: '6px 10px', borderRadius: 4, fontSize: 12, border: `1.5px solid ${C.lineFaint}`, outline: 'none' }} />
         <select value={selClassId} onChange={e => setSelClassId(e.target.value)}
@@ -1511,12 +1660,14 @@ function ReportsView() {
           <div style={{ padding: 24, textAlign: 'center', color: C.muted, fontSize: 12 }}>Loading…</div>
         ) : students.length === 0 ? (
           <div style={{ padding: 24, textAlign: 'center', color: C.muted, fontSize: 12 }}>Select a class to see the report</div>
-        ) : students.map((s, i) => {
+        ) : filteredStudents.length === 0 ? (
+          <div style={{ padding: 24, textAlign: 'center', color: C.muted, fontSize: 12 }}>No matching students found</div>
+        ) : filteredStudents.map((s, i) => {
           const rec = records.find(r => String(r.studentId) === String(s.id))
           const status = rec?.status || 'not marked'
           const col = status === 'present' ? C.green : status === 'absent' ? C.red : status === 'late' ? C.yellow : C.muted
           return (
-            <div key={s.id} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', padding: '10px 14px', borderBottom: i < students.length - 1 ? `1px solid ${C.lineFaint}` : 'none', fontSize: 12, alignItems: 'center' }}>
+            <div key={s.id} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', padding: '10px 14px', borderBottom: i < filteredStudents.length - 1 ? `1px solid ${C.lineFaint}` : 'none', fontSize: 12, alignItems: 'center' }}>
               <div style={{ fontWeight: 500, color: C.ink }}>{s.name}</div>
               <div style={{ color: C.muted }}>{s.rollNo || '—'}</div>
               <div><Pill color={col}>{status}</Pill></div>
@@ -1611,6 +1762,183 @@ function SettingsView() {
   )
 }
 
+/* ── TEST TYPES ──────────────────────────────────────────────────────────── */
+function TestTypeModal({ type, onClose, onSave }) {
+  const [form, setForm] = useState(type ? { ...type } : { code: '', label: '', sublabel: '', color: 'blue', showInReport: true })
+  const [saving, setSaving] = useState(false)
+  const [err, setErr] = useState('')
+
+  const save = async () => {
+    if (!form.code || !form.label || !form.color) return setErr('Code, label, and color are required.')
+    
+    setSaving(true); setErr('')
+    try {
+      let res;
+      if (type) res = await assessmentsApi.types.update(type.id, form)
+      else res = await assessmentsApi.types.create(form)
+      onSave(res.data.data)
+    } catch (e) {
+      setErr(e.response?.data?.message || 'Save failed')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const field = (label, key, placeholder, readOnly = false) => (
+    <div style={{ marginBottom: 12 }}>
+      <label style={{ display: 'block', fontSize: 11, fontWeight: 500, color: C.muted, marginBottom: 5 }}>{label}</label>
+      <input type="text" value={form[key] ?? ''} onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))} placeholder={placeholder} readOnly={readOnly}
+        style={{ width: '100%', padding: '8px 10px', borderRadius: 4, fontSize: 13, border: `1px solid ${C.lineFaint}`, outline: 'none', boxSizing: 'border-box', background: readOnly ? C.bg : '#fff', color: readOnly ? C.muted : C.ink }} />
+    </div>
+  )
+
+  return (
+    <Modal title={type ? 'Edit Test Type' : 'Add Test Type'} onClose={onClose}
+      footer={<div style={{ display: 'flex', gap: 10 }}><GhostBtn onClick={onClose}>Cancel</GhostBtn><PrimaryBtn onClick={save} disabled={saving}>{saving ? 'Saving...' : 'Save'}</PrimaryBtn></div>}>
+      {err && <div style={{ marginBottom: 12, padding: '8px 12px', background: `${C.red}10`, borderRadius: 6, fontSize: 12, color: C.red }}>{err}</div>}
+      {field('Code (unique, no spaces)', 'code', 'e.g. mock_exam', !!type)}
+      {field('Label (Display name)', 'label', 'e.g. Mock Exam')}
+      {field('Sublabel (Optional context)', 'sublabel', 'e.g. Pre-board prep')}
+      <div style={{ marginBottom: 12 }}>
+        <label style={{ display: 'block', fontSize: 11, fontWeight: 500, color: C.muted, marginBottom: 5 }}>Theme Color</label>
+        <select value={form.color} onChange={e => setForm(f => ({ ...f, color: e.target.value }))}
+          style={{ width: '100%', padding: '8px 10px', borderRadius: 4, fontSize: 13, border: `1px solid ${C.lineFaint}`, outline: 'none', boxSizing: 'border-box', background: '#fff' }}>
+          <option value="blue">Blue</option>
+          <option value="green">Green</option>
+          <option value="yellow">Yellow</option>
+          <option value="red">Red</option>
+        </select>
+      </div>
+      <div style={{ marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <input type="checkbox" id="showInReport" checked={form.showInReport !== false} onChange={e => setForm(f => ({ ...f, showInReport: e.target.checked }))}
+          style={{ width: 16, height: 16, cursor: 'pointer' }} />
+        <label htmlFor="showInReport" style={{ fontSize: 13, fontWeight: 500, color: C.ink, cursor: 'pointer' }}>Show in academic report</label>
+      </div>
+    </Modal>
+  )
+}
+
+function TestTypesView() {
+  const [types, setTypes] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [showAdd, setShowAdd] = useState(false)
+  const [editT, setEditT] = useState(null)
+  const [delTarget, setDelTarget] = useState(null)
+  const [deleting, setDeleting] = useState(false)
+  const [search, setSearch] = useState('')
+
+  const fetchTypes = useCallback(async () => {
+    try {
+      const res = await assessmentsApi.types.list()
+      setTypes(res.data.data || [])
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => { fetchTypes() }, [fetchTypes])
+
+  const deleteType = async () => {
+    if (!delTarget) return
+    setDeleting(true)
+    try {
+      await assessmentsApi.types.remove(delTarget.id)
+      setTypes(t => t.filter(x => x.id !== delTarget.id))
+      setDelTarget(null)
+    } catch (e) {
+      alert(e.response?.data?.message || 'Failed to delete test type')
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  const colorMap = {
+    red: C.red,
+    green: C.green,
+    blue: C.blue,
+    yellow: C.yellow,
+  }
+
+  const filteredTypes = types.filter(t => {
+    const q = search.toLowerCase()
+    return (
+      (t.code || '').toLowerCase().includes(q) ||
+      (t.label || '').toLowerCase().includes(q) ||
+      (t.sublabel || '').toLowerCase().includes(q) ||
+      (t.color || '').toLowerCase().includes(q)
+    )
+  })
+
+  return (
+    <PageShell title="Test Types" breadcrumbs="Curriculum / Test Types"
+      actions={
+        <>
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search test types…"
+            style={{ padding: '6px 10px', borderRadius: 4, fontSize: 12, border: `1.5px solid ${C.lineFaint}`, outline: 'none', width: 160 }}
+          />
+          <PrimaryBtn onClick={() => setShowAdd(true)}>+ Add Test Type</PrimaryBtn>
+        </>
+      }>
+      <div style={{ background: '#fff', borderRadius: 8, border: `1px solid ${C.lineFaint}`, overflow: 'hidden' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+          <thead>
+            <tr style={{ background: C.bg, borderBottom: `1px solid ${C.lineFaint}`, fontSize: 11, color: C.muted, textTransform: 'uppercase' }}>
+              <th style={{ padding: '12px 16px', fontWeight: 600 }}>Code</th>
+              <th style={{ padding: '12px 16px', fontWeight: 600 }}>Label</th>
+              <th style={{ padding: '12px 16px', fontWeight: 600 }}>Sublabel</th>
+              <th style={{ padding: '12px 16px', fontWeight: 600 }}>Color</th>
+              <th style={{ padding: '12px 16px', fontWeight: 600 }}>In Report</th>
+              <th style={{ padding: '12px 16px', fontWeight: 600, width: 80 }}>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              <tr><td colSpan="6" style={{ padding: 30, textAlign: 'center', color: C.muted, fontSize: 13 }}>Loading...</td></tr>
+            ) : filteredTypes.length === 0 ? (
+              <tr><td colSpan="6" style={{ padding: 30, textAlign: 'center', color: C.muted, fontSize: 13 }}>No test types found</td></tr>
+            ) : filteredTypes.map(t => (
+              <tr key={t.id} style={{ borderBottom: `1px solid ${C.lineFaint}`, fontSize: 13, color: C.ink }}>
+                <td style={{ padding: '12px 16px', fontFamily: 'monospace', color: C.muted }}>{t.code}</td>
+                <td style={{ padding: '12px 16px', fontWeight: 500 }}>{t.label}</td>
+                <td style={{ padding: '12px 16px', color: C.muted }}>{t.sublabel || '—'}</td>
+                <td style={{ padding: '12px 16px' }}>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 8px', background: `${colorMap[t.color] || C.blue}15`, color: colorMap[t.color] || C.blue, borderRadius: 4, fontSize: 11, fontWeight: 600, textTransform: 'capitalize' }}>
+                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: colorMap[t.color] || C.blue }} />
+                    {t.color}
+                  </div>
+                </td>
+                <td style={{ padding: '12px 16px' }}>
+                  <Pill color={t.showInReport ? C.green : C.muted}>{t.showInReport ? 'Yes' : 'No'}</Pill>
+                </td>
+                <td style={{ padding: '12px 16px' }}>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <IconButton onClick={() => setEditT(t)} icon="✏️" />
+                    <IconButton onClick={() => setDelTarget(t)} icon="🗑️" variant="danger" />
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {showAdd && <TestTypeModal onClose={() => setShowAdd(false)} onSave={t => { setTypes(prev => [...prev, t]); setShowAdd(false) }} />}
+      {editT && <TestTypeModal type={editT} onClose={() => setEditT(null)} onSave={t => { setTypes(prev => prev.map(x => x.id === t.id ? t : x)); setEditT(null) }} />}
+      {delTarget && (
+        <Modal title="Delete Test Type" onClose={() => setDelTarget(null)}
+          footer={<div style={{ display: 'flex', gap: 10 }}><GhostBtn onClick={() => setDelTarget(null)}>Cancel</GhostBtn><PrimaryBtn onClick={deleteType} disabled={deleting} variant="danger">{deleting ? 'Deleting...' : 'Delete'}</PrimaryBtn></div>}>
+          <p style={{ fontSize: 14, color: C.ink }}>Are you sure you want to delete the test type <strong>{delTarget.label}</strong> ({delTarget.code})? This will not delete existing marks but the type configuration will be removed.</p>
+        </Modal>
+      )}
+    </PageShell>
+  )
+}
+
 /* ── MAIN ────────────────────────────────────────────────────────────────── */
 export default function PrincipalAdmin({ activeView = 'dashboard' }) {
   switch (activeView) {
@@ -1623,6 +1951,7 @@ export default function PrincipalAdmin({ activeView = 'dashboard' }) {
     case 'curriculum':       return <CurriculumView />
     case 'reports':          return <ReportsView />
     case 'notices':          return <NoticesView />
+    case 'test-types':       return <TestTypesView />
     case 'settings':         return <SettingsView />
     default:                 return <DashboardView />
   }

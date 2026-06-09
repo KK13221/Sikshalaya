@@ -18,6 +18,10 @@ router.get('/', async (req, res) => {
     where[Op.or] = [{ schoolId: req.user.schoolId }, { schoolId: null }]
   }
 
+  if (req.query.target) {
+    where.target = req.query.target
+  }
+
   const metrics = await BehaviourMetric.findAll({ where, order: [['category', 'ASC'], ['name', 'ASC']] })
 
   // If no metrics exist yet, seed defaults
@@ -35,13 +39,13 @@ router.get('/', async (req, res) => {
 
 // POST /behaviour-metrics — principal and superadmin only
 router.post('/', authorize('superadmin', 'principal'), async (req, res) => {
-  const { name, kind, weight, category } = req.body
+  const { name, kind, weight, category, target } = req.body
   if (!name || !kind || weight === undefined || !category) {
     return res.status(400).json({ success: false, message: 'name, kind, weight, and category are required' })
   }
 
   const schoolId = req.user.role === 'superadmin' ? (req.body.schoolId ?? null) : req.user.schoolId
-  const metric = await BehaviourMetric.create({ name, kind, weight, category, schoolId, createdBy: req.user.id })
+  const metric = await BehaviourMetric.create({ name, kind, weight, category, target: target || 'student', schoolId, createdBy: req.user.id })
   res.status(201).json({ success: true, data: metric })
 })
 

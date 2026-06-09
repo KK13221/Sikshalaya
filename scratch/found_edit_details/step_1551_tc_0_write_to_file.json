@@ -1,0 +1,12 @@
+{
+  "name": "write_to_file",
+  "args": {
+    "CodeContent": "\"import os\\n\\nscratch_dir = \\\"/Users/shubhamjain/Documents/Kamlesh/Sikshalaya/scratch\\\"\\nfor name in sorted(os.listdir(scratch_dir)):\\n    path = os.path.join(scratch_dir, name)\\n    if os.path.isfile(path):\\n        try:\\n            with open(path, \\\"r\\\", encoding=\\\"utf-8\\\") as f:\\n                content = f.read()\\n            if \\\"TestTypesView\\\" in content:\\n                print(f\\\"File: {name}, length: {len(content)}\\\")\\n        except Exception as e:\\n            pass\\n\"",
+    "Description": "\"Find where TestTypesView code resides in scratch files\"",
+    "IsArtifact": "false",
+    "Overwrite": "true",
+    "TargetFile": "\"/Users/shubhamjain/Documents/Kamlesh/Sikshalaya/scratch/find_code.py\"",
+    "toolAction": "\"Searching scratch files\"",
+    "toolSummary": "\"Search scratch files\""
+  }
+}

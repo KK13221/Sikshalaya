@@ -1,0 +1,13 @@
+{
+  "name": "write_to_file",
+  "args": {
+    "ArtifactMetadata": "{\"ArtifactType\":\"other\",\"RequestFeedback\":false,\"Summary\":\"Recovery script to search for function TestTypesView in all recovered dump files.\"}",
+    "CodeContent": "\"import os\\n\\nfor name in os.listdir(\\\"scratch\\\"):\\n    if name.startswith(\\\"step_\\\") or name.startswith(\\\"recovered_\\\"):\\n        path = os.path.join(\\\"scratch\\\", name)\\n        with open(path, \\\"r\\\", errors=\\\"ignore\\\") as f:\\n            content = f.read()\\n            if \\\"function TestTypesView\\\" in content or \\\"TestTypesView\\\" in content:\\n                print(f\\\"File {name}: contains TestTypesView. Length = {len(content)}\\\")\\n                # check if it contains the full function\\n                if \\\"function TestTypesView\\\" in content:\\n                    print(\\\"  -> CONTAINS 'function TestTypesView'!\\\")\\n                    # Find and print the lines of the function\\n                    lines = content.split(\\\"\\\\n\\\")\\n                    idx = -1\\n                    for i, line in enumerate(lines):\\n                        if \\\"function TestTypesView\\\" in line:\\n                            idx = i\\n                            break\\n                    if idx != -1:\\n                        print(\\\"  -> Snippet:\\\")\\n                        print(\\\"\\\\n\\\".join(lines[idx:idx+80]))\\n                        print(\\\"...\\\")\\n\"",
+    "Description": "\"Create script to search for function definition in recovered files\"",
+    "IsArtifact": "false",
+    "Overwrite": "true",
+    "TargetFile": "\"/Users/shubhamjain/Documents/Kamlesh/Sikshalaya/scratch/recover_full.py\"",
+    "toolAction": "\"Writing recover_full.py function definition searcher\"",
+    "toolSummary": "\"Write full recovery script\""
+  }
+}

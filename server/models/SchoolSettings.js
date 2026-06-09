@@ -11,6 +11,9 @@ const SchoolSettings = sequelize.define('SchoolSettings', {
   schoolName:       { type: DataTypes.STRING(200) },
   passMarksDefault: { type: DataTypes.INTEGER, defaultValue: 12 },
   maxMarksDefault:  { type: DataTypes.INTEGER, defaultValue: 30 },
+  teacherNorms:     { type: DataTypes.TEXT },
+  teacherNormsVersion: { type: DataTypes.INTEGER, defaultValue: 1 },
+  teacherNormsUpdatedAt: { type: DataTypes.DATE },
 }, { tableName: 'school_settings' })
 
 module.exports = SchoolSettings

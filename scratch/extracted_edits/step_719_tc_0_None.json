@@ -1,0 +1,10 @@
+{
+  "name": "view_file",
+  "args": {
+    "AbsolutePath": "\"/Users/shubhamjain/Documents/Kamlesh/Sikshalaya/src/pages/PrincipalAdmin.jsx\"",
+    "EndLine": "1945",
+    "StartLine": "1905",
+    "toolAction": "\"Viewing SettingsView state and useEffect block\"",
+    "toolSummary": "\"View PrincipalAdmin.jsx\""
+  }
+}

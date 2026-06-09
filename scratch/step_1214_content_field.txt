@@ -1,0 +1,28 @@
+Created At: 2026-06-05T07:19:09Z
+Completed At: 2026-06-05T07:19:09Z
+{"File":"/Users/shubhamjain/Documents/Kamlesh/Sikshalaya/src/pages/PrincipalAdmin.jsx","LineNumber":27,"LineContent":"function PageShell({ title, breadcrumbs, actions, children }) {"}
+{"File":"/Users/shubhamjain/Documents/Kamlesh/Sikshalaya/src/pages/PrincipalAdmin.jsx","LineNumber":42,"LineContent":"function Input({ label, name, value, onChange, type = 'text', required, placeholder, half }) {"}
+{"File":"/Users/shubhamjain/Documents/Kamlesh/Sikshalaya/src/pages/PrincipalAdmin.jsx","LineNumber":52,"LineContent":"function Select({ label, name, value, onChange, options, required, half }) {"}
+{"File":"/Users/shubhamjain/Documents/Kamlesh/Sikshalaya/src/pages/PrincipalAdmin.jsx","LineNumber":65,"LineContent":"function Modal({ title, subtitle, onClose, children, footer, wide }) {"}
+{"File":"/Users/shubhamjain/Documents/Kamlesh/Sikshalaya/src/pages/PrincipalAdmin.jsx","LineNumber":84,"LineContent":"function ConfirmModal({ message, onConfirm, onCancel, loading }) {"}
+{"File":"/Users/shubhamjain/Documents/Kamlesh/Sikshalaya/src/pages/PrincipalAdmin.jsx","LineNumber":102,"LineContent":"function ErrBanner({ msg }) {"}
+{"File":"/Users/shubhamjain/Documents/Kamlesh/Sikshalaya/src/pages/PrincipalAdmin.jsx","LineNumber":108,"LineContent":"function MiniLineChart({ values, color = C.green, h = 80 }) {"}
+{"File":"/Users/shubhamjain/Documents/Kamlesh/Sikshalaya/src/pages/PrincipalAdmin.jsx","LineNumber":128,"LineContent":"function ProgressBar({ value, color, showPct = true }) {"}
+{"File":"/Users/shubhamjain/Documents/Kamlesh/Sikshalaya/src/pages/PrincipalAdmin.jsx","LineNumber":141,"LineContent":"function DashboardView() {"}
+{"File":"/Users/shubhamjain/Documents/Kamlesh/Sikshalaya/src/pages/PrincipalAdmin.jsx","LineNumber":234,"LineContent":"function StudentModal({ student, classes, onClose, onSaved }) {"}
+{"File":"/Users/shubhamjain/Documents/Kamlesh/Sikshalaya/src/pages/PrincipalAdmin.jsx","LineNumber":285,"LineContent":"function ImportStudentModal({ classes, onC
+<truncated 314 bytes>
+w() {"}
+{"File":"/Users/shubhamjain/Documents/Kamlesh/Sikshalaya/src/pages/PrincipalAdmin.jsx","LineNumber":636,"LineContent":"function TeacherModal({ teacher, onClose, onSaved }) {"}
+{"File":"/Users/shubhamjain/Documents/Kamlesh/Sikshalaya/src/pages/PrincipalAdmin.jsx","LineNumber":685,"LineContent":"function TeachersView() {"}
+{"File":"/Users/shubhamjain/Documents/Kamlesh/Sikshalaya/src/pages/PrincipalAdmin.jsx","LineNumber":758,"LineContent":"function ClassModal({ cls, onClose, onSaved }) {"}
+{"File":"/Users/shubhamjain/Documents/Kamlesh/Sikshalaya/src/pages/PrincipalAdmin.jsx","LineNumber":869,"LineContent":"function ClassesView() {"}
+{"File":"/Users/shubhamjain/Documents/Kamlesh/Sikshalaya/src/pages/PrincipalAdmin.jsx","LineNumber":960,"LineContent":"function AttendanceView() {"}
+{"File":"/Users/shubhamjain/Documents/Kamlesh/Sikshalaya/src/pages/PrincipalAdmin.jsx","LineNumber":1139,"LineContent":"function MarksView() {"}
+{"File":"/Users/shubhamjain/Documents/Kamlesh/Sikshalaya/src/pages/PrincipalAdmin.jsx","LineNumber":1353,"LineContent":"function CurriculumView() {"}
+{"File":"/Users/shubhamjain/Documents/Kamlesh/Sikshalaya/src/pages/PrincipalAdmin.jsx","LineNumber":1517,"LineContent":"function NoticesView() {"}
+{"File":"/Users/shubhamjain/Documents/Kamlesh/Sikshalaya/src/pages/PrincipalAdmin.jsx","LineNumber":1632,"LineContent":"function ReportsView() {"}
+{"File":"/Users/shubhamjain/Documents/Kamlesh/Sikshalaya/src/pages/PrincipalAdmin.jsx","LineNumber":1907,"LineContent":"function SettingsView() {"}
+{"File":"/Users/shubhamjain/Documents/Kamlesh/Sikshalaya/src/pages/PrincipalAdmin.jsx","LineNumber":2006,"LineContent":"function TestTypesView() {"}
+{"File":"/Users/shubhamjain/Documents/Kamlesh/Sikshalaya/src/pages/PrincipalAdmin.jsx","LineNumber":2122,"LineContent":"function TestTypeModal({ type, onClose, onSave }) {"}
+{"File":"/Users/shubhamjain/Documents/Kamlesh/Sikshalaya/src/pages/PrincipalAdmin.jsx","LineNumber":2179,"LineContent":"export default function PrincipalAdmin({ activeView = 'dashboard' }) {"}

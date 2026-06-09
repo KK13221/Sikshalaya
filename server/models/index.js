@@ -14,12 +14,20 @@ const Notification     = require('./Notification')
 const ActivityLog      = require('./ActivityLog')
 const SchoolSettings   = require('./SchoolSettings')
 const Notice           = require('./Notice')
+const AssessmentType   = require('./AssessmentType')
+const TeacherPerformanceLog = require('./TeacherPerformanceLog')
+const TeacherNormAcceptance = require('./TeacherNormAcceptance')
 
 
 // School associations
 School.belongsTo(User,    { as: 'principal', foreignKey: 'principalId' })
 User.hasMany(School,      { foreignKey: 'principalId' })
 User.belongsTo(School,    { foreignKey: 'schoolId', required: false })
+
+// TeacherNormAcceptance associations
+User.hasMany(TeacherNormAcceptance, { foreignKey: 'teacherId', as: 'normAcceptances' })
+TeacherNormAcceptance.belongsTo(User, { foreignKey: 'teacherId', as: 'teacher' })
+TeacherNormAcceptance.belongsTo(School, { foreignKey: 'schoolId' })
 
 School.hasMany(Student,   { foreignKey: 'schoolId', onDelete: 'CASCADE' })
 Student.belongsTo(School, { foreignKey: 'schoolId' })
@@ -28,6 +36,12 @@ School.hasMany(Teacher,   { foreignKey: 'schoolId', onDelete: 'CASCADE' })
 Teacher.belongsTo(School, { foreignKey: 'schoolId' })
 Teacher.belongsTo(User,   { foreignKey: 'userId', as: 'user' })
 User.hasOne(Teacher,      { foreignKey: 'userId', as: 'teacherProfile' })
+
+// TeacherPerformanceLog associations
+User.hasMany(TeacherPerformanceLog, { foreignKey: 'teacherId', as: 'performanceLogs' })
+TeacherPerformanceLog.belongsTo(User, { foreignKey: 'teacherId', as: 'teacher' })
+TeacherPerformanceLog.belongsTo(School, { foreignKey: 'schoolId' })
+TeacherPerformanceLog.belongsTo(User, { foreignKey: 'loggedBy', as: 'logger' })
 
 School.hasMany(Class,     { foreignKey: 'schoolId', onDelete: 'CASCADE' })
 Class.belongsTo(School,   { foreignKey: 'schoolId' })
@@ -82,5 +96,5 @@ module.exports = {
   User, School, Student, Teacher, Class,
   Attendance, Fee, Chapter, Assessment, Mark,
   BehaviourLog, BehaviourMetric, Notification, ActivityLog,
-  SchoolSettings, Notice,
+  SchoolSettings, Notice, AssessmentType, TeacherPerformanceLog, TeacherNormAcceptance,
 }

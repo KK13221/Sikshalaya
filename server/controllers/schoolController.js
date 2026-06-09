@@ -52,6 +52,8 @@ exports.getSchool = async (req, res, next) => {
 exports.createSchool = async (req, res, next) => {
   try {
     const school = await School.create(req.body)
+    const { logActivity } = require('../services/activityService')
+    await logActivity(req, 'created', `${school.name} branch`, { schoolId: school.id })
     res.status(201).json({ success: true, data: school })
   } catch (err) {
     next(err)
@@ -76,6 +78,9 @@ exports.deleteSchool = async (req, res, next) => {
     if (!school) return res.status(404).json({ success: false, message: 'School not found' })
 
     const sid = school.id
+    const { logActivity } = require('../services/activityService')
+    await logActivity(req, 'removed', `branch ${school.name}`)
+
     await sequelize.transaction(async (t) => {
       const opts = { where: { schoolId: sid }, transaction: t }
       const assessmentIds = (await Assessment.findAll({ where: { schoolId: sid }, attributes: ['id'], transaction: t })).map(a => a.id)

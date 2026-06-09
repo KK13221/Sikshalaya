@@ -1,0 +1,15 @@
+{
+  "name": "replace_file_content",
+  "args": {
+    "AllowMultiple": "false",
+    "Description": "\"Import ReportCardView in PrincipalAdmin.jsx\"",
+    "EndLine": "5",
+    "Instruction": "\"Add import for ReportCardView component at the top of PrincipalAdmin.jsx.\"",
+    "ReplacementContent": "\"import { hasPermission } from '../permissions.js'\\nimport ReportCardView from './ReportCardView.jsx'\"",
+    "StartLine": "4",
+    "TargetContent": "\"import { hasPermission } from '../permissions.js'\"",
+    "TargetFile": "\"/Users/shubhamjain/Documents/Kamlesh/Sikshalaya/src/pages/PrincipalAdmin.jsx\"",
+    "toolAction": "\"Importing ReportCardView in PrincipalAdmin.jsx\"",
+    "toolSummary": "\"Edit PrincipalAdmin.jsx\""
+  }
+}

@@ -1,0 +1,28 @@
+Created At: 2026-06-05T08:52:20Z
+Completed At: 2026-06-05T08:52:25Z
+
+				The command completed successfully.
+				Output:
+				Step 1276 keys: ['step_index', 'source', 'type', 'status', 'created_at', 'content']
+Content length: 4117
+--- First 500 chars ---
+Created At: 2026-06-05T07:20:35Z
+Completed At: 2026-06-05T07:20:35Z
+File Path: `file:///Users/shubhamjain/Documents/Kamlesh/Sikshalaya/src/pages/PrincipalAdmin.jsx`
+Total Lines: 2195
+Total Bytes: 122184
+Showing lines 2006 to 2080
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+2006: function TestTypesView
+--- Last 1000 chars ---
+.ink }}>
+2074:                 <td style={{ padding: '12px 16px', fontFamily: 'monospace', color: C.muted }}>{t.code}</td>
+2075:                 <td style={{ padding: '12px 16px', fontWeight: 500 }}>{t.label}</td>
+2076:                 <td style={{ padding: '12px 16px', color: C.muted }}>{t.sublabel || '—'}</td>
+2077:                 <td style={{ padding: '12px 16px' }}>
+2078:                   <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 8px', background: `${colorMap[t.color] || C.blue}15`, color: colorMap[t.color] || C.blue, borderRadius: 4, fontSize: 11, fontWeight: 600, textTransform: 'capitalize' }}>
+2079:                     <div style={{ width: 8, height: 8, borderRadius: '50%', background: colorMap[t.color] || C.blue }} />
+2080:                     {t.color}
+The above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.
+
+

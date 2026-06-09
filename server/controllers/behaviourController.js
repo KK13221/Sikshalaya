@@ -47,10 +47,21 @@ exports.create = async (req, res) => {
     recomputeStudentMetrics(sid, req.user.schoolId).catch(console.error)
   )
 
+  try {
+    const { logActivity } = require('../services/activityService')
+    const studentCount = studentIds.length
+    await logActivity(req, 'logged', `behavior metric for ${studentCount} student${studentCount > 1 ? 's' : ''}`, { schoolId: req.user.schoolId })
+  } catch (err) {
+    console.error('Failed to log behavior activity:', err)
+  }
+
   res.status(201).json({ success: true, data: records })
 }
 
 exports.list = async (req, res) => {
+  if (req.user.role === 'teacher') {
+    return res.status(403).json({ success: false, message: 'Forbidden' })
+  }
   const { studentId, from, schoolId } = req.query
   const where = { schoolId: schoolId || req.user.schoolId }
   if (studentId) where.studentId = studentId

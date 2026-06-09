@@ -5,6 +5,7 @@ export const auth = {
   logout: () => api.post('/auth/logout'),
   me: () => api.get('/auth/me'),
   changePassword: (data) => api.put('/auth/change-password', data),
+  acceptNorms: () => api.post('/auth/accept-norms'),
 }
 
 export const schools = {
@@ -20,6 +21,7 @@ export const students = {
   list: (params) => api.get('/students', { params }),
   get: (id) => api.get(`/students/${id}`),
   create: (data) => api.post('/students', data),
+  bulkCreate: (data) => api.post('/students/bulk', data),
   update: (id, data) => api.put(`/students/${id}`, data),
   remove: (id) => api.delete(`/students/${id}`),
   underperformers: (params) => api.get('/students/underperformers', { params }),
@@ -48,6 +50,7 @@ export const classes = {
   list: (params) => api.get('/classes', { params }),
   create: (data) => api.post('/classes', data),
   update: (id, data) => api.put(`/classes/${id}`, data),
+  academicReport: (id) => api.get(`/classes/${id}/academic-report`),
 }
 
 export const attendance = {
@@ -89,6 +92,12 @@ export const assessments = {
   upsertMark: (id, studentId, data) => api.patch(`/assessments/${id}/marks/${studentId}`, data),
   submit: (id) => api.post(`/assessments/${id}/submit`),
   publish: (data) => api.post('/assessments/publish', data),
+  types: {
+    list: () => api.get('/assessments/types'),
+    create: (data) => api.post('/assessments/types', data),
+    update: (id, data) => api.put(`/assessments/types/${id}`, data),
+    remove: (id) => api.delete(`/assessments/types/${id}`),
+  }
 }
 
 export const behaviour = {
@@ -116,6 +125,25 @@ export const notices = {
 }
 
 export const settings = {
-  get: () => api.get('/settings'),
-  update: (data) => api.put('/settings', data),
+  get: (params) => api.get('/settings', { params }),
+  update: (data, config) => api.put('/settings', data, config),
 }
+
+export const teacherPerformance = {
+  list: () => api.get('/teacher-performance'),
+  get: (id) => api.get(`/teacher-performance/${id}`),
+  create: (data) => api.post('/teacher-performance', data),
+  update: (id, data) => api.put(`/teacher-performance/${id}`, data),
+  remove: (id) => api.delete(`/teacher-performance/${id}`),
+  me: () => api.get('/teacher-performance/me/summary'),
+}
+
+export const reports = {
+  student: (studentId, term) => api.get(`/reports/student/${studentId}`, { params: { term } }),
+  class: (classId, term) => api.get(`/reports/class/${classId}`, { params: { term } }),
+}
+
+export const activityLogs = {
+  list: () => api.get('/activity-logs'),
+}
+

@@ -1,0 +1,58 @@
+Created At: 2026-06-02T14:17:16Z
+Completed At: 2026-06-02T14:17:16Z
+File Path: `file:///Users/shubhamjain/Documents/Kamlesh/Sikshalaya/src/pages/PrincipalAdmin.jsx`
+Total Lines: 1985
+Total Bytes: 111088
+Showing lines 1917 to 1966
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+1917: function TestTypeModal({ type, onClose, onSave }) {
+1918:   const [form, setForm] = useState(type ? { ...type } : { code: '', label: '', sublabel: '', color: 'blue' })
+1919:   const [saving, setSaving] = useState(false)
+1920:   const [err, setErr] = useState('')
+1921: 
+1922:   const save = async () => {
+1923:     if (!form.code || !form.label || !form.color) return setErr('Code, label, and color are required.')
+1924:     
+1925:     setSaving(true); setErr('')
+1926:     try {
+1927:       let res;
+1928:       if (type) res = await assessmentsApi.types.update(type.id, form)
+1929:       else res = await assessmentsApi.types.create(form)
+1930:       onSave(res.data.data)
+1931:     } catch (e) {
+1932:       setErr(e.response?.data?.message || 'Save failed')
+1933:     } finally {
+1934:       setSaving(false)
+1935:     }
+1936:   }
+1937: 
+1938:   const field = (label, key, placeholder, readOnly = false) => (
+1939:     <div style={{ marginBottom: 12 }}>
+1940:       <label style={{ display: 'block', fontSize: 11, fontWeight: 500, color: C.muted, marginBottom: 5 }}>{label}</label>
+1941:       <input type="text" value={form[key] ?? ''} onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))} placeholder={placeholder} readOnly={readOnly}
+1942:         style={{ width: '100%', padding: '8px 10px', borderRadius: 4, fontSize: 13, border: `1px solid ${C.lineFaint}`, outline: 'none', boxSizing: 'border-box', background: readOnly ? C.bg : '#fff', color: readOnly ? C.muted : C.ink }} />
+1943:     </div>
+1944:   )
+1945: 
+1946:   return (
+1947:     <Modal title={type ? 'Edit Test Type' : 'Add Test Type'} onClose={onClose}
+1948:       footer={<div style={{ display: 'flex', gap: 10 }}><GhostBtn onClick={onClose}>Cancel</GhostBtn><PrimaryBtn onClick={save} disabled={saving}>{saving ? 'Saving...' : 'Save'}</PrimaryBtn></div>}>
+1949:       {err && <div style={{ marginBottom: 12, padding: '8px 12px', background: `${C.red}10`, borderRadius: 6, fontSize: 12, color: C.red }}>{err}</div>}
+1950:       {field('Code (unique, no spaces)', 'code', 'e.g. mock_exam', !!type)}
+1951:       {field('Label (Display name)', 'label', 'e.g. Mock Exam')}
+1952:       {field('Sublabel (Optional context)', 'sublabel', 'e.g. Pre-board prep')}
+1953:       <div style={{ marginBottom: 12 }}>
+1954:         <label style={{ display: 'block', fontSize: 11, fontWeight: 500, color: C.muted, marginBottom: 5 }}>Theme Color</label>
+1955:         <select value={form.color} onChange={e => setForm(f => ({ ...f, color: e.target.value }))}
+1956:           style={{ width: '100%', padding: '8px 10px', borderRadius: 4, fontSize: 13, border: `1px solid ${C.lineFaint}`, outline: 'none', boxSizing: 'border-box', background: '#fff' }}>
+1957:           <option value="blue">Blue</option>
+1958:           <option value="green">Green</option>
+1959:           <option value="yellow">Yellow</option>
+1960:           <option value="red">Red</option>
+1961:         </select>
+1962:       </div>
+1963:     </Modal>
+1964:   )
+1965: }
+1966: 
+The above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.

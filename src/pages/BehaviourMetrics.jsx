@@ -41,7 +41,7 @@ const CategoryBadge = ({ category }) => (
   </span>
 )
 
-const EMPTY_FORM = { name: '', kind: 'positive', weight: '', category: 'behaviour' }
+const EMPTY_FORM = { name: '', kind: 'positive', weight: '', category: 'behaviour', target: 'student' }
 
 export default function BehaviourMetrics() {
   const [metrics, setMetrics] = useState([])
@@ -66,15 +66,22 @@ export default function BehaviourMetrics() {
   useEffect(() => { load() }, [])
 
   const handleAdd = async () => {
-    if (!form.name.trim() || !form.weight) return
+    const isTeacher = form.target === 'teacher'
+    if (!form.name.trim()) return
+    if (!isTeacher && !form.weight) return
+
     setSaving(true)
     try {
-      const weight = parseInt(form.weight, 10)
+      const weight = isTeacher ? 1 : parseInt(form.weight, 10)
+      const kind = isTeacher ? 'positive' : form.kind
+      const category = isTeacher ? form.name.trim() : form.category
+
       await metricsApi.create({
         name: form.name.trim(),
-        kind: form.kind,
-        weight: form.kind === 'negative' ? -Math.abs(weight) : Math.abs(weight),
-        category: form.category,
+        kind,
+        weight: kind === 'negative' ? -Math.abs(weight) : Math.abs(weight),
+        category,
+        target: form.target,
       })
       setForm(EMPTY_FORM)
       setShowForm(false)
@@ -87,7 +94,7 @@ export default function BehaviourMetrics() {
   }
 
   const handleDelete = async (id, name) => {
-    if (!window.confirm(`Remove metric "${name}"? Teachers will no longer be able to log it.`)) return
+    if (!window.confirm(`Remove metric/category "${name}"? Teachers/Principals will no longer be able to log it.`)) return
     try {
       await metricsApi.remove(id)
       await load()
@@ -96,8 +103,9 @@ export default function BehaviourMetrics() {
     }
   }
 
-  const behaviourMetrics = metrics.filter(m => m.category === 'behaviour')
-  const academicMetrics  = metrics.filter(m => m.category === 'academic')
+  const behaviourMetrics = metrics.filter(m => m.target !== 'teacher' && m.category === 'behaviour')
+  const academicMetrics  = metrics.filter(m => m.target !== 'teacher' && m.category === 'academic')
+  const teacherMetrics   = metrics.filter(m => m.target === 'teacher')
 
   return (
     <div style={{ padding: 28, fontFamily: 'Inter, sans-serif', background: C.bg, minHeight: '100%' }}>
@@ -107,7 +115,7 @@ export default function BehaviourMetrics() {
           <div style={{ fontSize: 11, color: C.muted, marginBottom: 4 }}>Admin › Configuration</div>
           <h1 style={{ fontSize: 22, fontWeight: 700, color: C.ink, margin: 0 }}>Behaviour & Performance Metrics</h1>
           <p style={{ margin: '4px 0 0', fontSize: 13, color: C.muted }}>
-            Manage the metrics teachers use to log student behaviour and academic performance.
+            Manage the metrics teachers use to log student behaviour and academic performance, as well as performance categories for teacher logs.
           </p>
         </div>
         <PrimaryBtn onClick={() => setShowForm(v => !v)}>
@@ -124,46 +132,65 @@ export default function BehaviourMetrics() {
       {/* Add Form */}
       {showForm && (
         <div style={{ background: '#fff', border: `1px solid ${C.lineFaint}`, borderRadius: 12, padding: 20, marginBottom: 24 }}>
-          <h3 style={{ margin: '0 0 16px', fontSize: 14, fontWeight: 700, color: C.ink }}>New Metric</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr auto', gap: 12, alignItems: 'flex-end' }}>
-            <div>
-              <label style={{ fontSize: 11, fontWeight: 600, color: C.muted, display: 'block', marginBottom: 4 }}>METRIC NAME *</label>
+          <h3 style={{ margin: '0 0 16px', fontSize: 14, fontWeight: 700, color: C.ink }}>New Metric / Category</h3>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'flex-end' }}>
+            <div style={{ minWidth: 140, flex: 1 }}>
+              <label style={{ fontSize: 11, fontWeight: 600, color: C.muted, display: 'block', marginBottom: 4 }}>CHOOSE TARGET GROUP *</label>
+              <select value={form.target} onChange={e => setForm(f => ({ ...f, target: e.target.value, category: e.target.value === 'teacher' ? 'General' : 'behaviour' }))}
+                style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: `1px solid ${C.lineFaint}`, fontSize: 13, background: '#fff' }}>
+                <option value="student">For Student</option>
+                <option value="teacher">For Teacher</option>
+              </select>
+            </div>
+            
+            <div style={{ minWidth: 200, flex: 2 }}>
+              <label style={{ fontSize: 11, fontWeight: 600, color: C.muted, display: 'block', marginBottom: 4 }}>
+                {form.target === 'teacher' ? 'CATEGORY NAME *' : 'METRIC NAME *'}
+              </label>
               <input
                 value={form.name}
                 onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                placeholder="e.g. Creative thinking"
+                placeholder={form.target === 'teacher' ? "e.g. Communication Skills" : "e.g. Creative thinking"}
                 style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: `1px solid ${C.lineFaint}`, fontSize: 13, boxSizing: 'border-box' }}
               />
             </div>
-            <div>
-              <label style={{ fontSize: 11, fontWeight: 600, color: C.muted, display: 'block', marginBottom: 4 }}>KIND *</label>
-              <select value={form.kind} onChange={e => setForm(f => ({ ...f, kind: e.target.value }))}
-                style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: `1px solid ${C.lineFaint}`, fontSize: 13 }}>
-                <option value="positive">Positive</option>
-                <option value="negative">Negative</option>
-              </select>
+
+            {form.target !== 'teacher' && (
+              <>
+                <div style={{ minWidth: 120, flex: 1 }}>
+                  <label style={{ fontSize: 11, fontWeight: 600, color: C.muted, display: 'block', marginBottom: 4 }}>KIND *</label>
+                  <select value={form.kind} onChange={e => setForm(f => ({ ...f, kind: e.target.value }))}
+                    style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: `1px solid ${C.lineFaint}`, fontSize: 13, background: '#fff' }}>
+                    <option value="positive">Positive</option>
+                    <option value="negative">Negative</option>
+                  </select>
+                </div>
+                <div style={{ minWidth: 100, flex: 1 }}>
+                  <label style={{ fontSize: 11, fontWeight: 600, color: C.muted, display: 'block', marginBottom: 4 }}>WEIGHT (points) *</label>
+                  <input
+                    type="number" min="1" max="20"
+                    value={form.weight}
+                    onChange={e => setForm(f => ({ ...f, weight: e.target.value }))}
+                    placeholder="e.g. 5"
+                    style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: `1px solid ${C.lineFaint}`, fontSize: 13, boxSizing: 'border-box' }}
+                  />
+                </div>
+                <div style={{ minWidth: 120, flex: 1 }}>
+                  <label style={{ fontSize: 11, fontWeight: 600, color: C.muted, display: 'block', marginBottom: 4 }}>CATEGORY *</label>
+                  <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
+                    style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: `1px solid ${C.lineFaint}`, fontSize: 13, background: '#fff' }}>
+                    <option value="behaviour">Behaviour</option>
+                    <option value="academic">Academic</option>
+                  </select>
+                </div>
+              </>
+            )}
+            
+            <div style={{ minWidth: 80 }}>
+              <PrimaryBtn onClick={handleAdd} disabled={saving || !form.name.trim() || (form.target !== 'teacher' && !form.weight)}>
+                {saving ? 'Saving…' : 'Save'}
+              </PrimaryBtn>
             </div>
-            <div>
-              <label style={{ fontSize: 11, fontWeight: 600, color: C.muted, display: 'block', marginBottom: 4 }}>WEIGHT (points) *</label>
-              <input
-                type="number" min="1" max="20"
-                value={form.weight}
-                onChange={e => setForm(f => ({ ...f, weight: e.target.value }))}
-                placeholder="e.g. 5"
-                style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: `1px solid ${C.lineFaint}`, fontSize: 13, boxSizing: 'border-box' }}
-              />
-            </div>
-            <div>
-              <label style={{ fontSize: 11, fontWeight: 600, color: C.muted, display: 'block', marginBottom: 4 }}>CATEGORY *</label>
-              <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
-                style={{ width: '100%', padding: '8px 10px', borderRadius: 6, border: `1px solid ${C.lineFaint}`, fontSize: 13 }}>
-                <option value="behaviour">Behaviour</option>
-                <option value="academic">Academic</option>
-              </select>
-            </div>
-            <PrimaryBtn onClick={handleAdd} disabled={saving || !form.name.trim() || !form.weight}>
-              {saving ? 'Saving…' : 'Save'}
-            </PrimaryBtn>
           </div>
         </div>
       )}
@@ -171,28 +198,41 @@ export default function BehaviourMetrics() {
       {loading ? (
         <div style={{ textAlign: 'center', padding: 40, color: C.muted }}>Loading metrics…</div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-          <MetricTable
-            title="Behaviour Metrics"
-            subtitle="Used to log student behaviour in the classroom"
-            metrics={behaviourMetrics}
-            onDelete={handleDelete}
-            accentColor={C.yellow}
-          />
-          <MetricTable
-            title="Academic Metrics"
-            subtitle="Used to log academic performance indicators"
-            metrics={academicMetrics}
-            onDelete={handleDelete}
-            accentColor={C.blue}
-          />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+            <MetricTable
+              title="Behaviour Metrics"
+              subtitle="Used to log student behaviour in the classroom"
+              metrics={behaviourMetrics}
+              onDelete={handleDelete}
+              accentColor={C.yellow}
+            />
+            <MetricTable
+              title="Academic Metrics"
+              subtitle="Used to log academic performance indicators"
+              metrics={academicMetrics}
+              onDelete={handleDelete}
+              accentColor={C.blue}
+            />
+          </div>
+          
+          <div style={{ maxWidth: '600px' }}>
+            <MetricTable
+              title="Teacher Performance Categories"
+              subtitle="Custom performance categories logged in teacher logs"
+              metrics={teacherMetrics}
+              onDelete={handleDelete}
+              accentColor={C.green}
+              isTeacherTable={true}
+            />
+          </div>
         </div>
       )}
     </div>
   )
 }
 
-function MetricTable({ title, subtitle, metrics, onDelete, accentColor }) {
+function MetricTable({ title, subtitle, metrics, onDelete, accentColor, isTeacherTable }) {
   return (
     <div style={{ background: '#fff', border: `1px solid ${C.lineFaint}`, borderRadius: 12, overflow: 'hidden' }}>
       <div style={{ padding: '16px 20px', borderBottom: `1px solid ${C.lineFaint}`, background: `${accentColor}08` }}>
@@ -202,15 +242,15 @@ function MetricTable({ title, subtitle, metrics, onDelete, accentColor }) {
 
       {metrics.length === 0 ? (
         <div style={{ padding: 24, textAlign: 'center', color: C.muted, fontSize: 13 }}>
-          No metrics yet. Click "+ Add Metric" to create one.
+          No items configured yet. Click "+ Add Metric" to create one.
         </div>
       ) : (
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ background: C.bg }}>
-              <th style={th}>Name</th>
-              <th style={th}>Kind</th>
-              <th style={th}>Weight</th>
+              <th style={th}>{isTeacherTable ? 'Category Name' : 'Name'}</th>
+              {!isTeacherTable && <th style={th}>Kind</th>}
+              {!isTeacherTable && <th style={th}>Weight</th>}
               <th style={{ ...th, textAlign: 'right' }}>Action</th>
             </tr>
           </thead>
@@ -218,12 +258,14 @@ function MetricTable({ title, subtitle, metrics, onDelete, accentColor }) {
             {metrics.map(m => (
               <tr key={m.id} style={{ borderTop: `1px solid ${C.lineFaint}` }}>
                 <td style={td}>{m.name}</td>
-                <td style={td}><Badge kind={m.kind} /></td>
-                <td style={td}>
-                  <span style={{ fontWeight: 700, color: m.kind === 'positive' ? C.green : C.red, fontSize: 13 }}>
-                    {m.kind === 'positive' ? '+' : ''}{m.weight} pts
-                  </span>
-                </td>
+                {!isTeacherTable && <td style={td}><Badge kind={m.kind} /></td>}
+                {!isTeacherTable && (
+                  <td style={td}>
+                    <span style={{ fontWeight: 700, color: m.kind === 'positive' ? C.green : C.red, fontSize: 13 }}>
+                      {m.kind === 'positive' ? '+' : ''}{m.weight} pts
+                    </span>
+                  </td>
+                )}
                 <td style={{ ...td, textAlign: 'right' }}>
                   <DangerBtn onClick={() => onDelete(m.id, m.name)}>Remove</DangerBtn>
                 </td>

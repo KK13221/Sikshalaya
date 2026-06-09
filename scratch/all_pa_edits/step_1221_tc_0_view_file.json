@@ -1,0 +1,10 @@
+{
+  "name": "view_file",
+  "args": {
+    "AbsolutePath": "\"/Users/shubhamjain/Documents/Kamlesh/Sikshalaya/src/pages/PrincipalAdmin.jsx\"",
+    "EndLine": "635",
+    "StartLine": "600",
+    "toolAction": "\"Viewing UnderperformersView row loop\"",
+    "toolSummary": "\"View PrincipalAdmin.jsx\""
+  }
+}

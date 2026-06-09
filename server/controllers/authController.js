@@ -37,10 +37,26 @@ exports.login = async (req, res, next) => {
 
     // Fetch school name so mobile app can display it without a separate call
     let schoolName = null
+    let principal = null
+    let settings = null
     if (user.schoolId) {
       const school = await School.findByPk(user.schoolId, { attributes: ['name'] })
       schoolName = school?.name || null
+      principal = await User.findOne({
+        where: { role: 'principal', schoolId: user.schoolId },
+        attributes: ['name', 'email']
+      })
+      const { SchoolSettings } = require('../models')
+      settings = await SchoolSettings.findOne({ where: { schoolId: user.schoolId } })
     }
+    const superadmin = await User.findOne({
+      where: { role: 'superadmin' },
+      attributes: ['name', 'email']
+    })
+
+    const currentVersion = settings ? (settings.teacherNormsVersion || 0) : 0
+    const acceptedVersion = user.normsAcceptedVersion || 0
+    const requiresNormsAcceptance = user.role === 'teacher' && settings && settings.teacherNorms && (currentVersion > acceptedVersion) ? true : false
 
     res.json({
       success: true,
@@ -52,6 +68,13 @@ exports.login = async (req, res, next) => {
         role: user.role,
         schoolId: user.schoolId,
         schoolName,
+        principal: principal ? principal.toJSON() : null,
+        superadmin: superadmin ? superadmin.toJSON() : null,
+        teacherNorms: settings ? settings.teacherNorms : null,
+        teacherNormsVersion: currentVersion,
+        normsAcceptedVersion: acceptedVersion,
+        normsAcceptedAt: user.normsAcceptedAt || null,
+        requiresNormsAcceptance,
       },
     })
   } catch (err) {
@@ -71,7 +94,94 @@ exports.me = async (req, res, next) => {
       attributes: { exclude: ['password'] },
       include: [{ model: School, attributes: ['id','name','code','city','plan','status'], required: false }],
     })
-    res.json({ success: true, user })
+    
+    let principal = null
+    if (user.schoolId) {
+      principal = await User.findOne({
+        where: { role: 'principal', schoolId: user.schoolId },
+        attributes: ['name', 'email']
+      })
+    }
+    const superadmin = await User.findOne({
+      where: { role: 'superadmin' },
+      attributes: ['name', 'email']
+    })
+
+    const { SchoolSettings } = require('../models')
+    let settings = null
+    if (user.schoolId) {
+      settings = await SchoolSettings.findOne({ where: { schoolId: user.schoolId } })
+    }
+
+    const userData = user.toJSON()
+    userData.principal = principal ? principal.toJSON() : null
+    userData.superadmin = superadmin ? superadmin.toJSON() : null
+    if (settings) {
+      userData.settings = settings.toJSON()
+    }
+
+    const currentVersion = settings ? (settings.teacherNormsVersion || 0) : 0
+    const acceptedVersion = user.normsAcceptedVersion || 0
+    const requiresNormsAcceptance = user.role === 'teacher' && settings && settings.teacherNorms && (currentVersion > acceptedVersion) ? true : false
+
+    userData.teacherNorms = settings ? settings.teacherNorms : null
+    userData.teacherNormsVersion = currentVersion
+    userData.normsAcceptedVersion = acceptedVersion
+    userData.normsAcceptedAt = user.normsAcceptedAt || null
+    userData.requiresNormsAcceptance = requiresNormsAcceptance
+
+    res.json({ success: true, user: userData, data: userData })
+  } catch (err) {
+    next(err)
+  }
+}
+
+exports.acceptNorms = async (req, res, next) => {
+  try {
+    const user = await User.findByPk(req.user.id)
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' })
+    }
+    if (user.role !== 'teacher') {
+      return res.status(403).json({ success: false, message: 'Only teachers need to accept norms' })
+    }
+    if (!user.schoolId) {
+      return res.status(400).json({ success: false, message: 'User has no school assigned' })
+    }
+
+    const { SchoolSettings, TeacherNormAcceptance } = require('../models')
+    const settings = await SchoolSettings.findOne({ where: { schoolId: user.schoolId } })
+    if (!settings || !settings.teacherNorms) {
+      return res.status(400).json({ success: false, message: 'No teacher norms configured for this school' })
+    }
+
+    const version = settings.teacherNormsVersion || 1
+
+    await user.update({
+      normsAcceptedVersion: version,
+      normsAcceptedAt: new Date()
+    })
+
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || ''
+    const ua = req.headers['user-agent'] || ''
+
+    await TeacherNormAcceptance.create({
+      teacherId: user.id,
+      schoolId: user.schoolId,
+      normsVersion: version,
+      acceptedAt: new Date(),
+      ipAddress: ip,
+      userAgent: ua
+    })
+
+    res.json({
+      success: true,
+      message: 'Norms accepted successfully',
+      data: {
+        normsAcceptedVersion: version,
+        normsAcceptedAt: user.normsAcceptedAt
+      }
+    })
   } catch (err) {
     next(err)
   }

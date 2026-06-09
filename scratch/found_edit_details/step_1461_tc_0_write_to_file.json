@@ -1,0 +1,13 @@
+{
+  "name": "write_to_file",
+  "args": {
+    "ArtifactMetadata": "{\"ArtifactType\":\"other\",\"RequestFeedback\":false,\"Summary\":\"Modified recovery script to search for args key inside tool calls.\"}",
+    "CodeContent": "\"import os, json\\n\\npath = \\\"/Users/shubhamjain/.gemini/antigravity/brain/f7a0b14d-8a6e-4317-9440-6e98c0661b0f/.system_generated/logs/transcript.jsonl\\\"\\nwith open(path, \\\"r\\\") as f:\\n    for line in f:\\n        obj = json.loads(line)\\n        step = obj.get(\\\"step_index\\\")\\n        if \\\"tool_calls\\\" in obj:\\n            for tc in obj[\\\"tool_calls\\\"]:\\n                args = tc.get(\\\"args\\\", {})\\n                content = args.get(\\\"ReplacementContent\\\") or args.get(\\\"CodeContent\\\")\\n                if content and \\\"TestTypesView\\\" in content:\\n                    print(f\\\"=== Found in step {step} ({tc.get('name')}) ===\\\")\\n                    print(\\\"Content length:\\\", len(content))\\n                    out_name = f\\\"scratch/recovered_step_{step}.txt\\\"\\n                    with open(out_name, \\\"w\\\") as out_f:\\n                        out_f.write(content)\\n                    print(\\\"Saved to\\\", out_name)\\n                    # Let's inspect the first 100 characters of the content\\n                    print(content[:300] + \\\"...\\\")\\n\"",
+    "Description": "\"Update recovery check to query args key\"",
+    "IsArtifact": "false",
+    "Overwrite": "true",
+    "TargetFile": "\"/Users/shubhamjain/Documents/Kamlesh/Sikshalaya/scratch/recover_full.py\"",
+    "toolAction": "\"Writing recover_full.py args check\"",
+    "toolSummary": "\"Write full recovery script\""
+  }
+}

@@ -29,10 +29,14 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
     if (token != null) {
       final user = await apiService.getCurrentUser();
       if (user != null) {
-        // Set state and navigate to home
-        ref.read(currentUserProvider.notifier).state = user.copyWith(name: 'Kamlesh Sharma');
+        // Set state and navigate to home or norms
+        ref.read(currentUserProvider.notifier).state = user;
         if (mounted) {
-          context.go('/home');
+          if (user.requiresNormsAcceptance) {
+            context.go('/norms');
+          } else {
+            context.go('/home');
+          }
         }
         return;
       } else {

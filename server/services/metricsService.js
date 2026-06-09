@@ -1,12 +1,24 @@
 const { Op } = require('sequelize')
-const { Student, Mark, Assessment, Attendance, BehaviourLog, Notification, User } = require('../models')
+const { Student, Mark, Assessment, Attendance, BehaviourLog, Notification, User, SchoolSettings } = require('../models')
 
-const UNDERPERFORMER_THRESHOLD = 75
 const W = { chapter_test: 0.20, class_test: 0.20, unit_test: 0.30, term_exam: 0.30 }
 
 async function computeAcademicsPct(studentId, schoolId) {
+  const { AssessmentType } = require('../models')
+  const activeTypes = await AssessmentType.findAll({
+    where: {
+      schoolId: { [Op.or]: [null, schoolId] },
+      showInReport: true
+    }
+  })
+  const allowedCodes = activeTypes.map(t => t.code)
+
   const assessments = await Assessment.findAll({
-    where: { schoolId, status: { [Op.in]: ['completed', 'published'] } },
+    where: {
+      schoolId,
+      status: { [Op.in]: ['completed', 'published'] },
+      type: { [Op.in]: allowedCodes }
+    },
     include: [{ model: Mark, where: { studentId }, required: true }],
   })
 
@@ -14,19 +26,24 @@ async function computeAcademicsPct(studentId, schoolId) {
   for (const a of assessments) {
     const mark = a.Marks[0]
     if (mark.isAbsent || mark.marksObtained == null) continue
-    const pct = (mark.marksObtained / a.maxMarks) * 100
-    if (!byType[a.type]) byType[a.type] = []
-    byType[a.type].push(pct)
+    const max = a.maxMarks || 100
+    const pct = (mark.marksObtained / max) * 100
+    if (!Number.isNaN(pct)) {
+      if (!byType[a.type]) byType[a.type] = []
+      byType[a.type].push(pct)
+    }
   }
 
   let total = 0, wsum = 0
   for (const [type, pcts] of Object.entries(byType)) {
     const avg = pcts.reduce((s, p) => s + p, 0) / pcts.length
-    total += avg * W[type]
-    wsum += W[type]
+    const weight = W[type] || 0.20 // fallback for custom test types
+    total += avg * weight
+    wsum += weight
   }
 
-  return wsum === 0 ? null : total / wsum
+  const finalVal = wsum === 0 ? null : total / wsum
+  return Number.isNaN(finalVal) ? null : finalVal
 }
 
 async function computePunctualityPct(studentId) {
@@ -39,14 +56,14 @@ async function computePunctualityPct(studentId) {
 
   const relevant = sessions.filter(s => {
     const r = s.records || []
-    return r.some(rec => rec.studentId === studentId)
+    return r.some(rec => String(rec.studentId) === String(studentId))
   })
 
   if (relevant.length === 0) return null
 
   let present = 0, late = 0
   for (const s of relevant) {
-    const rec = (s.records || []).find(r => r.studentId === studentId)
+    const rec = (s.records || []).find(r => String(r.studentId) === String(studentId))
     if (!rec) continue
     if (rec.status === 'present') present++
     else if (rec.status === 'late') late++
@@ -75,10 +92,16 @@ async function recomputeStudentMetrics(studentId, schoolId) {
     computeBehaviourScore(studentId),
   ])
 
+  let threshold = 75
+  const settings = await SchoolSettings.findOne({ where: { schoolId: schoolId || student.schoolId } })
+  if (settings && settings.yellowThreshold != null) {
+    threshold = settings.yellowThreshold
+  }
+
   const dims = []
-  if (academicsPct != null && academicsPct < UNDERPERFORMER_THRESHOLD) dims.push('academics')
-  if (punctualityPct != null && punctualityPct < UNDERPERFORMER_THRESHOLD) dims.push('punctuality')
-  if (behaviourScore != null && behaviourScore < UNDERPERFORMER_THRESHOLD) dims.push('behaviour')
+  if (academicsPct != null && academicsPct < threshold) dims.push('academics')
+  if (punctualityPct != null && punctualityPct < threshold) dims.push('punctuality')
+  if (behaviourScore != null && behaviourScore < threshold) dims.push('behaviour')
 
   const wasUnderperformer = student.isUnderperformer
   const isUnderperformer = dims.length > 0

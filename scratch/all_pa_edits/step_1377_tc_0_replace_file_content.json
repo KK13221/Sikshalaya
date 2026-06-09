@@ -1,0 +1,15 @@
+{
+  "name": "replace_file_content",
+  "args": {
+    "AllowMultiple": "false",
+    "Description": "\"Close the outer div in AttendanceView\"",
+    "EndLine": "1082",
+    "Instruction": "\"Close the outer container div for the student list that starts at line 1052.\"",
+    "ReplacementContent": "\"              </div>\\n            )}\\n          </div>\\n        </>\\n      )}\\n    </PageShell>\\n  )\\n}\"",
+    "StartLine": "1075",
+    "TargetContent": "\"              </div>\\n            )}\\n        </>\\n      )}\\n    </PageShell>\\n  )\\n}\"",
+    "TargetFile": "\"/Users/shubhamjain/Documents/Kamlesh/Sikshalaya/src/pages/PrincipalAdmin.jsx\"",
+    "toolAction": "\"Closing div tag in AttendanceView\"",
+    "toolSummary": "\"Close div tag\""
+  }
+}

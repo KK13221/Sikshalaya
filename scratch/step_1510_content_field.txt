@@ -1,0 +1,83 @@
+Created At: 2026-06-05T08:48:52Z
+Completed At: 2026-06-05T08:48:55Z
+
+				The command completed successfully.
+				Output:
+				Created At: 2026-06-05T07:20:35Z
+Completed At: 2026-06-05T07:20:35Z
+File Path: `file:///Users/shubhamjain/Documents/Kamlesh/Sikshalaya/src/pages/PrincipalAdmin.jsx`
+Total Lines: 2195
+Total Bytes: 122184
+Showing lines 2006 to 2080
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+2006: function TestTypesView() {
+2007:   const [types, setTypes] = useState([])
+2008:   const [loading, setLoading] = useState(true)
+2009:   const [showAdd, setShowAdd] = useState(false)
+2010:   const [editT, setEditT] = useState(null)
+2011:   const [delTarget, setDelTarget] = useState(null)
+2012:   const [deleting, setDeleting] = useState(false)
+2013:   const [err, setErr] = useState('')
+2014: 
+2015:   const fetchTypes = useCallback(async () => {
+2016:     try {
+2017:       const res = await assessmentsApi.types.list()
+2018:       setTypes(res.data.data || [])
+2019:     } catch (e) {
+2020:       console.error(e)
+2021:     } finally {
+2022:       setLoading(false)
+2023:     }
+2024:   }, [])
+2025: 
+2026:   useEffect(() => { fetchTypes() }, [fetchTypes])
+2027: 
+2028:   const deleteType = async () => {
+2029:     if (!delTarget) return
+2030:     setDeleting(true)
+2031:     try {
+2032:       await assessmentsApi.types.remove(delTarget.id)
+2033:       setTypes(t => t.filter(x => x.id !== delTarget.id))
+2034:       setDelTarget(null)
+2035:     } catch (e) {
+2036:       alert(e.response?.data?.message || 'Failed to delete test type')
+2037:     } finally {
+2038:       setDeleting(false)
+2039:     }
+2040:   }
+2041: 
+2042:   const colorMap = {
+2043:     red: C.red,
+2044:     green: C.green,
+2045:     blue: C.blue,
+2046:     yellow: C.yellow,
+2047:   }
+2048: 
+2049:   return (
+2050:     <PageShell title="Test Types" breadcrumbs="Curriculum 
+<truncated 150 bytes>
+600 }}>Code</th>
+2060:               <th style={{ padding: '12px 16px', fontWeight: 600 }}>Label</th>
+2061:               <th style={{ padding: '12px 16px', fontWeight: 600 }}>Sublabel</th>
+2062:               <th style={{ padding: '12px 16px', fontWeight: 600 }}>Color</th>
+2063:               <th style={{ padding: '12px 16px', fontWeight: 600 }}>In Report</th>
+2064:               <th style={{ padding: '12px 16px', fontWeight: 600, width: 80 }}>Actions</th>
+2065:             </tr>
+2066:           </thead>
+2067:           <tbody>
+2068:             {loading ? (
+2069:               <tr><td colSpan="6" style={{ padding: 30, textAlign: 'center', color: C.muted, fontSize: 13 }}>Loading...</td></tr>
+2070:             ) : types.length === 0 ? (
+2071:               <tr><td colSpan="6" style={{ padding: 30, textAlign: 'center', color: C.muted, fontSize: 13 }}>No test types configured</td></tr>
+2072:             ) : types.map(t => (
+2073:               <tr key={t.id} style={{ borderBottom: `1px solid ${C.lineFaint}`, fontSize: 13, color: C.ink }}>
+2074:                 <td style={{ padding: '12px 16px', fontFamily: 'monospace', color: C.muted }}>{t.code}</td>
+2075:                 <td style={{ padding: '12px 16px', fontWeight: 500 }}>{t.label}</td>
+2076:                 <td style={{ padding: '12px 16px', color: C.muted }}>{t.sublabel || '—'}</td>
+2077:                 <td style={{ padding: '12px 16px' }}>
+2078:                   <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 8px', background: `${colorMap[t.color] || C.blue}15`, color: colorMap[t.color] || C.blue, borderRadius: 4, fontSize: 11, fontWeight: 600, textTransform: 'capitalize' }}>
+2079:                     <div style={{ width: 8, height: 8, borderRadius: '50%', background: colorMap[t.color] || C.blue }} />
+2080:                     {t.color}
+The above content does NOT show the entire file contents. If you need to view any lines of the file which were not shown to complete your task, call this tool again to view those lines.
+
+

@@ -6,6 +6,17 @@ class TeacherUser {
   final int? schoolId;
   final String branch;
   final List<String> teaches; // classIds this teacher is assigned to
+  final String? principalName;
+  final String? principalEmail;
+  final String? superAdminName;
+  final String? superAdminEmail;
+  final int greenThreshold;
+  final int yellowThreshold;
+  final String? teacherNorms;
+  final int teacherNormsVersion;
+  final int normsAcceptedVersion;
+  final String? normsAcceptedAt;
+  final bool requiresNormsAcceptance;
 
   const TeacherUser({
     required this.id,
@@ -15,6 +26,17 @@ class TeacherUser {
     this.schoolId,
     required this.branch,
     this.teaches = const [],
+    this.principalName,
+    this.principalEmail,
+    this.superAdminName,
+    this.superAdminEmail,
+    this.greenThreshold = 75,
+    this.yellowThreshold = 50,
+    this.teacherNorms,
+    this.teacherNormsVersion = 0,
+    this.normsAcceptedVersion = 0,
+    this.normsAcceptedAt,
+    this.requiresNormsAcceptance = false,
   });
 
   factory TeacherUser.fromJson(Map<String, dynamic> json) {
@@ -27,6 +49,10 @@ class TeacherUser {
     } else if (schoolId != null) {
       branch = 'School #$schoolId';
     }
+    
+    final principal = json['principal'] as Map<String, dynamic>?;
+    final superadmin = json['superadmin'] as Map<String, dynamic>?;
+
     return TeacherUser(
       id: json['id']?.toString() ?? '',
       name: json['name'] ?? '',
@@ -35,6 +61,17 @@ class TeacherUser {
       schoolId: schoolId,
       branch: branch,
       teaches: const [],
+      principalName: principal?['name'] as String?,
+      principalEmail: principal?['email'] as String?,
+      superAdminName: superadmin?['name'] as String?,
+      superAdminEmail: superadmin?['email'] as String?,
+      greenThreshold: json['settings']?['greenThreshold'] as int? ?? 75,
+      yellowThreshold: json['settings']?['yellowThreshold'] as int? ?? 50,
+      teacherNorms: json['teacherNorms'] as String?,
+      teacherNormsVersion: json['teacherNormsVersion'] as int? ?? 0,
+      normsAcceptedVersion: json['normsAcceptedVersion'] as int? ?? 0,
+      normsAcceptedAt: json['normsAcceptedAt'] as String?,
+      requiresNormsAcceptance: json['requiresNormsAcceptance'] as bool? ?? false,
     );
   }
 
@@ -46,6 +83,17 @@ class TeacherUser {
     int? schoolId,
     String? branch,
     List<String>? teaches,
+    String? principalName,
+    String? principalEmail,
+    String? superAdminName,
+    String? superAdminEmail,
+    int? greenThreshold,
+    int? yellowThreshold,
+    String? teacherNorms,
+    int? teacherNormsVersion,
+    int? normsAcceptedVersion,
+    String? normsAcceptedAt,
+    bool? requiresNormsAcceptance,
   }) {
     return TeacherUser(
       id: id ?? this.id,
@@ -55,6 +103,17 @@ class TeacherUser {
       schoolId: schoolId ?? this.schoolId,
       branch: branch ?? this.branch,
       teaches: teaches ?? this.teaches,
+      principalName: principalName ?? this.principalName,
+      principalEmail: principalEmail ?? this.principalEmail,
+      superAdminName: superAdminName ?? this.superAdminName,
+      superAdminEmail: superAdminEmail ?? this.superAdminEmail,
+      greenThreshold: greenThreshold ?? this.greenThreshold,
+      yellowThreshold: yellowThreshold ?? this.yellowThreshold,
+      teacherNorms: teacherNorms ?? this.teacherNorms,
+      teacherNormsVersion: teacherNormsVersion ?? this.teacherNormsVersion,
+      normsAcceptedVersion: normsAcceptedVersion ?? this.normsAcceptedVersion,
+      normsAcceptedAt: normsAcceptedAt ?? this.normsAcceptedAt,
+      requiresNormsAcceptance: requiresNormsAcceptance ?? this.requiresNormsAcceptance,
     );
   }
 
@@ -70,6 +129,7 @@ class ClassInfo {
   final String id;
   final String name;
   final String subject;
+  final List<String> subjectList;
   final int students;
   final int attendancePercent;
   final String? classTeacherName;
@@ -78,6 +138,7 @@ class ClassInfo {
     required this.id,
     required this.name,
     required this.subject,
+    this.subjectList = const [],
     required this.students,
     required this.attendancePercent,
     this.classTeacherName,
@@ -90,6 +151,7 @@ class ClassInfo {
       id: json['id']?.toString() ?? '',
       name: '${json['name'] ?? ''} ${json['section'] ?? ''}'.trim(),
       subject: subjects.isNotEmpty ? subjects.join(', ') : 'General',
+      subjectList: subjects.isNotEmpty ? subjects : ['General'],
       students: (json['studentCount'] ?? json['totalStudents'] ?? json['students'] ?? 0) as int,
       attendancePercent: (json['attendancePercent'] ?? 90) as int,
       classTeacherName: teacher?['name'] as String?,
@@ -100,6 +162,7 @@ class ClassInfo {
     String? id,
     String? name,
     String? subject,
+    List<String>? subjectList,
     int? students,
     int? attendancePercent,
     String? classTeacherName,
@@ -108,6 +171,7 @@ class ClassInfo {
       id: id ?? this.id,
       name: name ?? this.name,
       subject: subject ?? this.subject,
+      subjectList: subjectList ?? this.subjectList,
       students: students ?? this.students,
       attendancePercent: attendancePercent ?? this.attendancePercent,
       classTeacherName: classTeacherName ?? this.classTeacherName,
@@ -200,6 +264,10 @@ class Student {
   final double? behaviourScore;
   final bool isUnderperformer;
   final List<String> flaggedDims; // e.g. ["academics", "behaviour"]
+  final String? guardianName;
+  final String? guardianRelation;
+  final String? guardianPhone;
+  final String? guardianEmail;
 
   const Student({
     required this.id,
@@ -212,6 +280,10 @@ class Student {
     this.behaviourScore,
     this.isUnderperformer = false,
     this.flaggedDims = const [],
+    this.guardianName,
+    this.guardianRelation,
+    this.guardianPhone,
+    this.guardianEmail,
   });
 
   factory Student.fromJson(Map<String, dynamic> json) {
@@ -227,6 +299,10 @@ class Student {
       behaviourScore: (json['behaviourScore'] as num?)?.toDouble(),
       isUnderperformer: json['isUnderperformer'] ?? false,
       flaggedDims: dims,
+      guardianName: json['guardianName'],
+      guardianRelation: json['guardianRelation'],
+      guardianPhone: json['guardianPhone'],
+      guardianEmail: json['guardianEmail'],
     );
   }
 
@@ -364,6 +440,7 @@ class Chapter {
   final String id;
   final int number;
   final String name;
+  final String subject;
   final int periods;
   final bool hasChapterTest;
   final String status; // upcoming | in_progress | done
@@ -372,6 +449,7 @@ class Chapter {
     required this.id,
     required this.number,
     required this.name,
+    this.subject = 'General',
     required this.periods,
     this.hasChapterTest = true,
     this.status = 'upcoming',
@@ -382,6 +460,7 @@ class Chapter {
       id: json['id']?.toString() ?? '',
       number: json['chapterNumber'] ?? 1,
       name: json['name'] ?? '',
+      subject: json['subjectId']?.toString() ?? 'General',
       periods: json['periods'] ?? 0,
       hasChapterTest: json['hasChapterTest'] ?? false,
       status: json['status'] ?? 'upcoming',
@@ -474,6 +553,29 @@ class BehaviourLog {
       loggedAt: json['createdAt'] != null
           ? DateTime.parse(json['createdAt'])
           : (json['date'] != null ? DateTime.parse(json['date']) : DateTime.now()),
+    );
+  }
+}
+
+class AssessmentType {
+  final String code;
+  final String label;
+  final String sublabel;
+  final String color;
+
+  const AssessmentType({
+    required this.code,
+    required this.label,
+    required this.sublabel,
+    required this.color,
+  });
+
+  factory AssessmentType.fromJson(Map<String, dynamic> json) {
+    return AssessmentType(
+      code: json['code']?.toString() ?? '',
+      label: json['label']?.toString() ?? '',
+      sublabel: json['sublabel']?.toString() ?? '',
+      color: json['color']?.toString() ?? 'blue',
     );
   }
 }

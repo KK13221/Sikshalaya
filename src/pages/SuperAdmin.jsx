@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { schools as schoolsApi, teachers as teachersApi, users as usersApi, dashboard as dashboardApi, notices as noticesApi, students as studentsApi, classes as classesApi } from '../api'
+import { schools as schoolsApi, teachers as teachersApi, users as usersApi, dashboard as dashboardApi, notices as noticesApi, students as studentsApi, classes as classesApi, settings as settingsApi, activityLogs as activityLogsApi } from '../api'
 import SystemOverview from './SystemOverview'
 
 const C = {
@@ -277,14 +277,16 @@ function BranchesView({ onViewBranch }) {
 
 /* ── PRINCIPALS ───────────────────────────────────────────────────────── */
 function PrincipalModal({ principal, schools, onClose, onSaved }) {
-  const empty = { name: '', email: '', schoolId: '', role: 'principal', password: '' }
+  const empty = { name: '', email: '', schoolId: '', role: 'principal', password: '', isActive: true }
   const [form, setForm] = useState(principal ? { ...empty, ...principal } : empty)
   const [fieldErrors, setFieldErrors] = useState({})
   const [saving, setSaving] = useState(false)
   const [err, setErr] = useState('')
   const [createdPassword, setCreatedPassword] = useState('')
   const set = e => {
-    setForm(f => ({ ...f, [e.target.name]: e.target.value }))
+    let value = e.target.value;
+    if (e.target.name === 'isActive') value = value === 'true';
+    setForm(f => ({ ...f, [e.target.name]: value }))
     setFieldErrors(fe => ({ ...fe, [e.target.name]: '' }))
   }
 
@@ -343,6 +345,8 @@ function PrincipalModal({ principal, schools, onClose, onSaved }) {
       )}
       <Select label="Assign to branch" name="schoolId" value={form.schoolId||''} onChange={set}
         options={schools.map(s => ({ value: s.id, label: `${s.name} (${s.city})` }))} />
+      <Select label="Status" name="isActive" value={form.isActive} onChange={set}
+        options={[{ value: true, label: 'Active' }, { value: false, label: 'Inactive' }]} />
     </Modal>
   )
 }
@@ -579,27 +583,62 @@ function TeachersViewSA() {
 
 /* ── ACTIVITY, REPORTS, PERMISSIONS, SETTINGS (kept as-is) ───────────── */
 function ActivityView() {
-  const events = [
-    ['10:42','P. Sharma','invited','principal','Lucknow Hazratganj',C.blue],
-    ['10:18','R. Iyer','published','Term 1 results — class 10','Bengaluru Central',C.green],
-    ['09:55','System','auto-disabled','inactive teacher account','Mumbai Andheri',C.muted],
-    ['09:30','You','created','Indore Vijay Nagar branch','—',C.blue],
-    ['09:02','A. Bose','modified','attendance for 8A','Kolkata Salt Lake',C.yellow],
-    ['08:44','V. Suresh','exported','student list (CSV, 470 rows)','Chennai T. Nagar',C.muted],
-    ['08:20','K. Joshi','removed','teacher M. Khan','Mumbai Andheri',C.red],
-  ]
+  const [logs, setLogs] = useState([])
+  const [search, setSearch] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [err, setErr] = useState('')
+
+  useEffect(() => {
+    activityLogsApi.list()
+      .then(res => {
+        setLogs(res.data.data || [])
+      })
+      .catch(e => {
+        setErr('Failed to load activity logs')
+        console.error(e)
+      })
+      .finally(() => setLoading(false))
+  }, [])
+
+  const filtered = logs.filter(log => {
+    const q = search.toLowerCase()
+    return (
+      (log.actorName || '').toLowerCase().includes(q) ||
+      (log.action || '').toLowerCase().includes(q) ||
+      (log.details || '').toLowerCase().includes(q) ||
+      (log.branchName || '').toLowerCase().includes(q)
+    )
+  })
+
   return (
-    <PageShell title="Activity log" breadcrumbs="StudentLens" actions={<GhostBtn>Export</GhostBtn>}>
-      <div style={{ background: '#fff', borderRadius: 8, border: `1px solid ${C.lineFaint}` }}>
-        {events.map((e, i) => (
-          <div key={i} style={{ display: 'grid', gridTemplateColumns: '80px 16px 1fr 160px', padding: '12px 14px', borderBottom: i < events.length-1 ? `1px solid ${C.lineFaint}` : 'none', alignItems: 'center', fontSize: 12, gap: 12 }}>
-            <div style={{ fontSize: 11, color: C.muted, fontFamily: 'ui-monospace,monospace' }}>{e[0]}</div>
-            <div style={{ width: 10, height: 10, borderRadius: '50%', background: e[5] }} />
-            <div><span style={{ fontWeight: 600 }}>{e[1]}</span> <span style={{ color: C.muted }}>{e[2]}</span> <span style={{ color: C.ink }}>{e[3]}</span></div>
-            <div style={{ fontSize: 11, color: C.muted, textAlign: 'right' }}>{e[4]}</div>
-          </div>
-        ))}
-      </div>
+    <PageShell title="Activity log" breadcrumbs="StudentLens"
+      actions={<>
+        <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search logs…"
+          style={{ padding: '6px 10px', borderRadius: 4, fontSize: 12, border: `1.5px solid ${C.lineFaint}`, outline: 'none', width: 200 }} />
+        <GhostBtn>Export</GhostBtn>
+      </>}>
+      {err && <div style={{ marginBottom: 12, padding: '8px 12px', background: `${C.red}10`, borderRadius: 6, fontSize: 12, color: C.red }}>{err}</div>}
+      
+      {loading ? (
+        <div style={{ background: '#fff', borderRadius: 8, padding: 40, border: `1px solid ${C.lineFaint}`, textAlign: 'center', color: C.muted, fontSize: 13 }}>
+          Loading activity logs…
+        </div>
+      ) : filtered.length === 0 ? (
+        <div style={{ background: '#fff', borderRadius: 8, padding: 40, border: `1px solid ${C.lineFaint}`, textAlign: 'center', color: C.muted, fontSize: 13 }}>
+          No matching activities found.
+        </div>
+      ) : (
+        <div style={{ background: '#fff', borderRadius: 8, border: `1px solid ${C.lineFaint}` }}>
+          {filtered.map((log, i) => (
+            <div key={log.id} style={{ display: 'grid', gridTemplateColumns: '120px 16px 1fr 180px', padding: '12px 14px', borderBottom: i < filtered.length-1 ? `1px solid ${C.lineFaint}` : 'none', alignItems: 'center', fontSize: 12, gap: 12 }}>
+              <div style={{ fontSize: 11, color: C.muted, fontFamily: 'ui-monospace,monospace' }}>{log.time}</div>
+              <div style={{ width: 10, height: 10, borderRadius: '50%', background: log.color }} />
+              <div><span style={{ fontWeight: 600 }}>{log.actorName}</span> <span style={{ color: C.muted }}>{log.action}</span> <span style={{ color: C.ink }}>{log.details}</span></div>
+              <div style={{ fontSize: 11, color: C.muted, textAlign: 'right' }}>{log.branchName}</div>
+            </div>
+          ))}
+        </div>
+      )}
     </PageShell>
   )
 }
@@ -890,6 +929,84 @@ function BranchDetailView({ school, onExit }) {
   )
 }
 
+function TeacherNormsEditor() {
+  const [schools, setSchools] = useState([])
+  const [selSchoolId, setSelSchoolId] = useState('')
+  const [normsText, setNormsText] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [err, setErr] = useState('')
+
+  useEffect(() => {
+    schoolsApi.list({ limit: 100 }).then(r => {
+      const list = r.data.data || []
+      setSchools(list)
+      if (list.length) {
+        setSelSchoolId(String(list[0].id))
+      }
+    }).catch(console.error)
+  }, [])
+
+  useEffect(() => {
+    if (!selSchoolId) return
+    setLoading(true)
+    setErr('')
+    settingsApi.get({ schoolId: Number(selSchoolId) })
+      .then(r => {
+        setNormsText(r.data.data?.teacherNorms || '')
+      })
+      .catch(e => {
+        setErr('Failed to load school settings')
+      })
+      .finally(() => setLoading(false))
+  }, [selSchoolId])
+
+  const saveNorms = async () => {
+    setSaving(true); setSaved(false); setErr('')
+    try {
+      await settingsApi.update({ teacherNorms: normsText }, { params: { schoolId: Number(selSchoolId) } })
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2000)
+    } catch (e) {
+      setErr(e.response?.data?.message || 'Failed to save norms')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <PageShell title="Manage Teacher Norms" breadcrumbs="Super Admin"
+      actions={<PrimaryBtn onClick={saveNorms} disabled={saving || !selSchoolId}>{saving ? 'Saving…' : 'Save & Publish Norms'}</PrimaryBtn>}>
+      {err && <div style={{ marginBottom: 12, padding: '8px 12px', background: `${C.red}10`, borderRadius: 6, fontSize: 12, color: C.red }}>{err}</div>}
+      {saved && <div style={{ marginBottom: 12, padding: '8px 12px', background: `${C.green}10`, borderRadius: 6, fontSize: 12, color: C.green }}>Norms saved successfully. Version incremented!</div>}
+      
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, background: '#fff', padding: 16, borderRadius: 8, border: `1px solid ${C.lineFaint}` }}>
+        <div style={{ maxWidth: 300 }}>
+          <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>Select Branch / School</label>
+          <select value={selSchoolId} onChange={e => setSelSchoolId(e.target.value)}
+            style={{ width: '100%', padding: '8px 10px', borderRadius: 4, fontSize: 13, border: `1px solid ${C.lineFaint}`, outline: 'none', background: '#fff' }}>
+            <option value="">Select branch…</option>
+            {schools.map(s => <option key={s.id} value={s.id}>{s.name} ({s.city})</option>)}
+          </select>
+        </div>
+
+        <div>
+          <label style={{ display: 'block', fontSize: 11, fontWeight: 600, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>Teacher Norms & Declaration Agreement</label>
+          <textarea
+            rows="24"
+            value={normsText}
+            onChange={e => setNormsText(e.target.value)}
+            disabled={loading}
+            placeholder="Paste teacher norms rules and code of conduct details here..."
+            style={{ width: '100%', padding: '12px', borderRadius: 6, fontSize: 13, border: `1px solid ${C.lineFaint}`, outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box', lineHeight: 1.5 }}
+          />
+        </div>
+      </div>
+    </PageShell>
+  )
+}
+
 /* ── MAIN ────────────────────────────────────────────────────────────── */
 export default function SuperAdmin({ activeView = 'overview' }) {
   const [viewAsBranch, setViewAsBranch] = useState(null)
@@ -900,13 +1017,14 @@ export default function SuperAdmin({ activeView = 'overview' }) {
   }
 
   switch (activeView) {
-    case 'branches':    return <BranchesView onViewBranch={setViewAsBranch} />
-    case 'principals':  return <PrincipalsView />
-    case 'teachers':    return <TeachersViewSA />
-    case 'reports':     return <ReportsView />
-    case 'activity':    return <ActivityView />
-    case 'permissions': return <PermissionsView />
-    case 'settings':    return <SettingsView />
-    default:            return <SystemOverview />
+    case 'branches':      return <BranchesView onViewBranch={setViewAsBranch} />
+    case 'principals':    return <PrincipalsView />
+    case 'teachers':      return <TeachersViewSA />
+    case 'teacher-norms': return <TeacherNormsEditor />
+    case 'reports':       return <ReportsView />
+    case 'activity':      return <ActivityView />
+    case 'permissions':   return <PermissionsView />
+    case 'settings':      return <SettingsView />
+    default:              return <SystemOverview />
   }
 }

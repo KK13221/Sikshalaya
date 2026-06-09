@@ -17,7 +17,7 @@ class TodayDashboardScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Text('Good morning, ${user.name}',
+          Text('Welcome, ${user.name}',
               style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           const Text('Here are today\'s highlights and pending actions.'),

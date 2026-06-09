@@ -1,0 +1,16 @@
+Created At: 2026-06-02T14:53:56Z
+Completed At: 2026-06-02T14:53:56Z
+File Path: `file:///Users/shubhamjain/.gemini/antigravity/brain/f7a0b14d-8a6e-4317-9440-6e98c0661b0f/task.md`
+Total Lines: 8
+Total Bytes: 612
+Showing lines 1 to 8
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+1: - [x] Alter MySQL table `assessment_types` on production VPS to add `showInReport` column
+2: - [x] Modify `server/models/AssessmentType.js` to include the `showInReport` field
+3: - [x] Modify `server/controllers/assessmentController.js` to handle `showInReport`
+4: - [x] Update `server/services/metricsService.js` to respect `showInReport` in metrics computation
+5: - [x] Modify `src/pages/PrincipalAdmin.jsx` - TestTypesView and TestTypeModal to support editing and viewing `showInReport`
+6: - [x] Implement Academic Reports section in `src/pages/PrincipalAdmin.jsx` (ReportsView)
+7: - [x] Verify changes locally and deploy/test
+8: 
+The above content shows the entire, complete file contents of the requested file.

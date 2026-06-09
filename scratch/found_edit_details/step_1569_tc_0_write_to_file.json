@@ -1,0 +1,12 @@
+{
+  "name": "write_to_file",
+  "args": {
+    "CodeContent": "\"import os\\n\\nscratch_dir = \\\"/Users/shubhamjain/Documents/Kamlesh/Sikshalaya/scratch\\\"\\nfor name in sorted(os.listdir(scratch_dir)):\\n    if name.endswith(\\\".txt\\\"):\\n        path = os.path.join(scratch_dir, name)\\n        with open(path, \\\"r\\\", encoding=\\\"utf-8\\\") as f:\\n            content = f.read()\\n        if \\\"TestTypesView\\\" in content:\\n            print(f\\\"File: {name}, length: {len(content)}, lines: {len(content.splitlines())}\\\")\\n            # print first 3 lines and last 3 lines\\n            lines = content.splitlines()\\n            if lines:\\n                print(\\\"  Start:\\\", lines[:3])\\n                print(\\\"  End:\\\", lines[-3:])\\n\"",
+    "Description": "\"List all reconstructed text files containing TestTypesView with starting and ending lines\"",
+    "IsArtifact": "false",
+    "Overwrite": "true",
+    "TargetFile": "\"/Users/shubhamjain/Documents/Kamlesh/Sikshalaya/scratch/list_recovered_files.py\"",
+    "toolAction": "\"Listing recovered text files\"",
+    "toolSummary": "\"List text files\""
+  }
+}

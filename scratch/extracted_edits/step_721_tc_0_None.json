@@ -1,0 +1,15 @@
+{
+  "name": "replace_file_content",
+  "args": {
+    "AllowMultiple": "false",
+    "Description": "\"Add perfSummary state and fetch it in SettingsView when user is a teacher\"",
+    "EndLine": "1929",
+    "Instruction": "\"Initialize perfSummary state and retrieve its value from performanceApi inside useEffect.\"",
+    "ReplacementContent": "\"function SettingsView() {\\n  const { user } = useAuth()\\n  const [schoolSettings, setSchoolSettings] = useState(null)\\n  const [form, setForm] = useState({ academicYear: '', greenThreshold: 75, yellowThreshold: 50, passMarksDefault: 12, maxMarksDefault: 30 })\\n  const [saving, setSaving] = useState(false)\\n  const [saved, setSaved] = useState(false)\\n  const [err, setErr] = useState('')\\n  const [perfSummary, setPerfSummary] = useState(null)\\n\\n  useEffect(() => {\\n    settingsApi.get()\\n      .then(r => {\\n        const s = r.data.data\\n        setSchoolSettings(s)\\n        setForm({\\n          academicYear: s.academicYear || '2025-26',\\n          greenThreshold: s.greenThreshold ?? 75,\\n          yellowThreshold: s.yellowThreshold ?? 50,\\n          passMarksDefault: s.passMarksDefault ?? 12,\\n          maxMarksDefault: s.maxMarksDefault ?? 30,\\n        })\\n      }).catch(console.error)\\n\\n    if (user?.role === 'teacher') {\\n      performanceApi.me()\\n        .then(r => setPerfSummary(r.data.data))\\n        .catch(console.error)\\n    }\\n  }, [user])\"",
+    "StartLine": "1907",
+    "TargetContent": "\"function SettingsView() {\\n  const { user } = useAuth()\\n  const [schoolSettings, setSchoolSettings] = useState(null)\\n  const [form, setForm] = useState({ academicYear: '', greenThreshold: 75, yellowThreshold: 50, passMarksDefault: 12, maxMarksDefault: 30 })\\n  const [saving, setSaving] = useState(false)\\n  const [saved, setSaved] = useState(false)\\n  const [err, setErr] = useState('')\\n\\n  useEffect(() => {\\n    settingsApi.get()\\n      .then(r => {\\n        const s = r.data.data\\n        setSchoolSettings(s)\\n        setForm({\\n          academicYear: s.academicYear || '2025-26',\\n          greenThreshold: s.greenThreshold ?? 75,\\n          yellowThreshold: s.yellowThreshold ?? 50,\\n          passMarksDefault: s.passMarksDefault ?? 12,\\n          maxMarksDefault: s.maxMarksDefault ?? 30,\\n        })\\n      }).catch(console.error)\\n  }, [])\"",
+    "TargetFile": "\"/Users/shubhamjain/Documents/Kamlesh/Sikshalaya/src/pages/PrincipalAdmin.jsx\"",
+    "toolAction": "\"Adding perfSummary state to SettingsView\"",
+    "toolSummary": "\"Edit PrincipalAdmin.jsx\""
+  }
+}

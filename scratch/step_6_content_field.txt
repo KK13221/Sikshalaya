@@ -1,0 +1,11 @@
+Created At: 2026-06-02T14:13:46Z
+Completed At: 2026-06-02T14:13:46Z
+{"File":"/Users/shubhamjain/Documents/Kamlesh/Sikshalaya/src/pages/PrincipalAdmin.jsx","LineNumber":1140,"LineContent":"  const [testTypes, setTestTypes] = useState([])"}
+{"File":"/Users/shubhamjain/Documents/Kamlesh/Sikshalaya/src/pages/PrincipalAdmin.jsx","LineNumber":1159,"LineContent":"      setTestTypes(types)"}
+{"File":"/Users/shubhamjain/Documents/Kamlesh/Sikshalaya/src/pages/PrincipalAdmin.jsx","LineNumber":1209,"LineContent":"          {testTypes.map((t) =\u003e {"}
+{"File":"/Users/shubhamjain/Documents/Kamlesh/Sikshalaya/src/pages/PrincipalAdmin.jsx","LineNumber":1229,"LineContent":"              \u003cdiv style={{ fontSize: 14, fontWeight: 600, color: C.ink }}\u003e{testTypes.find(t =\u003e t.code === activeType)?.label || 'Assessment'} · entry progress\u003c/div\u003e"}
+{"File":"/Users/shubhamjain/Documents/Kamlesh/Sikshalaya/src/pages/PrincipalAdmin.jsx","LineNumber":1257,"LineContent":"              All {testTypes.find(t =\u003e t.code === activeType)?.label || 'Assessment'} assessments {selClass ? `— ${selClass.name}-${selClass.section}` : ''}"}
+{"File":"/Users/shubhamjain/Documents/Kamlesh/Sikshalaya/src/pages/PrincipalAdmin.jsx","LineNumber":1807,"LineContent":"function TestTypesView() {"}
+{"File":"/Users/shubhamjain/Documents/Kamlesh/Sikshalaya/src/pages/PrincipalAdmin.jsx","LineNumber":1896,"LineContent":"        \u003cTestTypeModal"}
+{"File":"/Users/shubhamjain/Documents/Kamlesh/Sikshalaya/src/pages/PrincipalAdmin.jsx","LineNumber":1917,"LineContent":"function TestTypeModal({ type, onClose, onSave }) {"}
+{"File":"/Users/shubhamjain/Documents/Kamlesh/Sikshalaya/src/pages/PrincipalAdmin.jsx","LineNumber":1980,"LineContent":"    case 'test-types':       return \u003cTestTypesView /\u003e"}

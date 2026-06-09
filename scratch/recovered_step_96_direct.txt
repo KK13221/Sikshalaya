@@ -1,0 +1,15 @@
+Created At: 2026-06-02T14:16:49Z
+Completed At: 2026-06-02T14:16:49Z
+The following changes were made by the replace_file_content tool to: /Users/shubhamjain/.gemini/antigravity/brain/f7a0b14d-8a6e-4317-9440-6e98c0661b0f/task.md. If relevant, proactively run terminal commands to execute this code for the USER. Don't ask for permission.
+[diff_block_start]
+@@ -1,5 +1,5 @@
+-- [ ] Alter MySQL table `assessment_types` on production VPS to add `showInReport` column
+-- [ ] Modify `server/models/AssessmentType.js` to include the `showInReport` field
++- [x] Alter MySQL table `assessment_types` on production VPS to add `showInReport` column
++- [/] Modify `server/models/AssessmentType.js` to include the `showInReport` field
+ - [ ] Modify `server/controllers/assessmentController.js` to handle `showInReport`
+ - [ ] Update `server/services/metricsService.js` to respect `showInReport` in metrics computation
+ - [ ] Modify `src/pages/PrincipalAdmin.jsx` - TestTypesView and TestTypeModal to support editing and viewing `showInReport`
+[diff_block_end]
+
+Please note that the above snippet only shows the MODIFIED lines from the last change. It shows up to 3 lines of unchanged lines before and after the modified lines. The actual file contents may have many more lines not shown.

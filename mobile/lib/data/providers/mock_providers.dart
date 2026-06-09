@@ -66,7 +66,35 @@ class NotificationsNotifier extends StateNotifier<List<AppNotification>> {
   NotificationsNotifier(this._api) : super([]) { loadNotifications(); }
 
   Future<void> loadNotifications() async {
-    state = await _api.getNotifications();
+    final notifs = await _api.getNotifications();
+    final notices = await _api.getNotices();
+    
+    final noticeNotifs = notices.map((n) {
+      final p = switch (n.priority.toLowerCase()) {
+        'urgent' => NotificationPriority.urgent,
+        'reminder' => NotificationPriority.reminder,
+        _ => NotificationPriority.info,
+      };
+      
+      return AppNotification(
+        id: 'notice_${n.id}',
+        title: n.title,
+        subtitle: n.body ?? 'School Notice',
+        category: 'notice',
+        priority: p,
+        unread: false,
+        timeAgo: _timeAgo(n.createdAt),
+      );
+    }).toList();
+
+    state = [...notifs, ...noticeNotifs];
+  }
+
+  String _timeAgo(DateTime d) {
+    final diff = DateTime.now().difference(d);
+    if (diff.inDays > 0) return '${diff.inDays}d';
+    if (diff.inHours > 0) return '${diff.inHours}h';
+    return '${diff.inMinutes}m';
   }
 }
 
@@ -89,6 +117,10 @@ class AssessmentsNotifier extends StateNotifier<List<Assessment>> {
 final assessmentsProvider =
     StateNotifierProvider<AssessmentsNotifier, List<Assessment>>((ref) {
   return AssessmentsNotifier(ref.watch(apiServiceProvider));
+});
+
+final assessmentTypesProvider = FutureProvider<List<AssessmentType>>((ref) async {
+  return ref.watch(apiServiceProvider).getAssessmentTypes();
 });
 
 // ─── Chapters ─────────────────────────────────────────────────────────────────
@@ -306,4 +338,8 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
 
 final settingsProvider = StateNotifierProvider<SettingsNotifier, SettingsState>((ref) {
   return SettingsNotifier();
+});
+
+final teacherPerformanceSummaryProvider = FutureProvider<Map<String, dynamic>?>((ref) async {
+  return ref.watch(apiServiceProvider).getPerformanceSummary();
 });

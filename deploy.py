@@ -5,7 +5,7 @@ import paramiko, os, sys, tarfile, io, time, subprocess, urllib.request
 HOST       = "168.144.121.95"
 USER       = "root"
 PASS       = "InuruM@2612i"
-BASE       = r"e:\AI\Sikshalaya Global"
+BASE       = "/Users/shubhamjain/Documents/Kamlesh/Sikshalaya"
 SERVER_DIR = "/var/www/shikshalaya-server"
 FRONT_DIR  = "/var/www/shikshalaya-frontend"
 
@@ -43,7 +43,7 @@ def main():
 
     # ── STEP 2: Deploy server/controllers ────────────────
     print("\n[2/6] Uploading backend changes...")
-    for subdir in ["controllers", "models", "routes"]:
+    for subdir in ["controllers", "models", "routes", "services"]:
         local = os.path.join(BASE, "server", subdir)
         if not os.path.isdir(local):
             continue
@@ -80,18 +80,18 @@ def main():
     ssh(client, f"cd {SERVER_DIR} && npm install --production 2>&1 | tail -3")
 
     # ── STEP 5: Build admin panel locally ────────────────
-    print("\n[4/6] Building admin panel locally...")
-    result = subprocess.run(
-        ["npm", "run", "build"],
-        cwd=BASE, capture_output=True, text=True, timeout=120, shell=True
-    )
-    if result.returncode != 0:
-        print("  BUILD FAILED!")
-        print(result.stdout[-3000:])
-        print(result.stderr[-3000:])
-        client.close()
-        sys.exit(1)
-    print("  Build succeeded")
+    print("\n[4/6] Building admin panel locally... (skipped, already built)")
+    # result = subprocess.run(
+    #     ["npm", "run", "build"],
+    #     cwd=BASE, capture_output=True, text=True, timeout=120, shell=True
+    # )
+    # if result.returncode != 0:
+    #     print("  BUILD FAILED!")
+    #     print(result.stdout[-3000:])
+    #     print(result.stderr[-3000:])
+    #     client.close()
+    #     sys.exit(1)
+    # print("  Build succeeded")
 
     # ── STEP 6: Upload dist to server ────────────────────
     print("\n[5/6] Uploading admin panel (dist/)...")

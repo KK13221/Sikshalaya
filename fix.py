@@ -1,0 +1,10 @@
+import paramiko
+client = paramiko.SSHClient()
+client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+client.connect("168.144.121.95", username="root", password="InuruM@2612i", timeout=10)
+sftp = client.open_sftp()
+sftp.put("fix_teacher.js", "/root/fix_teacher.js")
+stdin, stdout, stderr = client.exec_command("node /root/fix_teacher.js")
+print(stdout.read().decode())
+print(stderr.read().decode())
+client.close()

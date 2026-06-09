@@ -1,0 +1,10 @@
+{
+  "name": "view_file",
+  "args": {
+    "AbsolutePath": "\"/Users/shubhamjain/Documents/Kamlesh/Sikshalaya/src/pages/PrincipalAdmin.jsx\"",
+    "EndLine": "535",
+    "StartLine": "510",
+    "toolAction": "\"Viewing UnderperformersView state definition in PrincipalAdmin.jsx\"",
+    "toolSummary": "\"Read UnderperformersView state\""
+  }
+}

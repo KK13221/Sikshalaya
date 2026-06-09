@@ -1,0 +1,13 @@
+{
+  "name": "write_to_file",
+  "args": {
+    "ArtifactMetadata": "{\"ArtifactType\":\"implementation_plan\",\"RequestFeedback\":true,\"Summary\":\"Implementation plan for adding search bars to all list-displaying views in both Super Admin and Principal Admin panels.\"}",
+    "CodeContent": "\"# Implementation Plan: Search functionality on all lists\\n\\nWe will review all pages/views that display lists of items and ensure they have functional search bars.\\n\\n## Proposed Changes\\n\\n### Principal Admin Panel\\n\\n#### [MODIFY] [PrincipalAdmin.jsx](file:///Users/shubhamjain/Documents/Kamlesh/Sikshalaya/src/pages/PrincipalAdmin.jsx)\\nWe will add local search state and filter the displayed items for:\\n1. **ClassesView**: Filter classes by name, section, subjects, or class teacher name.\\n2. **UnderperformersView**: Filter flagged students by name or roll number.\\n3. **AttendanceView**: Filter the student attendance list by name or roll number.\\n4. **MarksView**: \\n   - Filter the assessments list by title or subject.\\n   - Filter the \\\"View marks\\\" modal table by student name or roll number.\\n5. **CurriculumView**: Filter the chapters list by chapter number or chapter name.\\n6. **NoticesView**: Filter notices by title or body text.\\n7. **ReportsView**: \\n   - Academic tab: Filter students table by name or roll number.\\n   - Attendance tab: Filter students table by name or roll number.\\n8. **TestTypesView**: Filter test types by code, label, or sublabel.\\n\\n## Verification Plan\\n\\n### Manual Verification\\n- We will verify in each view of the Principal Admin panel that:\\n  - A search input is displayed (styled consistently with the theme).\\n  - Typing in the search bar immediately filters the displayed items.\\n  - An appropriate \\\"No matching items found\\\" message is shown if the search matches nothing.\\n\"",
+    "Description": "\"Create implementation plan for search additions on all list views.\"",
+    "IsArtifact": "true",
+    "Overwrite": "true",
+    "TargetFile": "\"/Users/shubhamjain/.gemini/antigravity/brain/f7a0b14d-8a6e-4317-9440-6e98c0661b0f/implementation_plan.md\"",
+    "toolAction": "\"Writing implementation plan for list search additions\"",
+    "toolSummary": "\"Write implementation plan\""
+  }
+}

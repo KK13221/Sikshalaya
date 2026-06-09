@@ -12,38 +12,38 @@ class ClassDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final students = ref.watch(studentListProvider(classId));
+    final classes = ref.watch(classListProvider);
+    final currentClass = classes.firstWhere(
+      (c) => c.id == classId,
+      orElse: () => ClassInfo(id: classId, name: 'Class $classId', subject: '', students: 0, attendancePercent: 0),
+    );
 
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text('Class $classId', style: const TextStyle(fontWeight: FontWeight.w700)),
-          bottom: const TabBar(tabs: [Tab(text: 'Roster'), Tab(text: 'Insights')]),
-        ),
-        body: TabBarView(children: [
-          _RosterTab(students: students),
-          const Center(child: Text('Insights — coming soon', style: TextStyle(color: AppColors.muted))),
-        ]),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(currentClass.name, style: const TextStyle(fontWeight: FontWeight.w700)),
       ),
+      body: _RosterTab(students: students),
     );
   }
 }
 
-class _RosterTab extends StatelessWidget {
+class _RosterTab extends ConsumerWidget {
   const _RosterTab({required this.students});
   final List<Student> students;
 
-  Color _getPerformanceColor(Student s) {
+  Color _getPerformanceColor(Student s, int green, int yellow) {
+    if (s.isUnderperformer) return const Color(0xFFEF4444); // Red
     final score = (s.academicsPct ?? 0.0) * 0.6 + (s.punctualityPct ?? 0.0) * 0.4;
-    if (s.isUnderperformer || score < 75) return const Color(0xFFEF4444); // Red
-    if (score < 85) return const Color(0xFFF59E0B); // Yellow
+    if (score < yellow) return const Color(0xFFEF4444); // Red
+    if (score < green) return const Color(0xFFF59E0B); // Yellow
     return const Color(0xFF22C55E); // Green
   }
 
-  String _getPerformanceLabel(Student s) {
+  String _getPerformanceLabel(Student s, int green, int yellow) {
+    if (s.isUnderperformer) return 'URGENT';
     final score = (s.academicsPct ?? 0.0) * 0.6 + (s.punctualityPct ?? 0.0) * 0.4;
-    if (s.isUnderperformer || score < 75) return 'URGENT';
-    if (score < 85) return 'AVERAGE';
+    if (score < yellow) return 'URGENT';
+    if (score < green) return 'AVERAGE';
     return 'GOOD';
   }
 
@@ -53,15 +53,19 @@ class _RosterTab extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(currentUserProvider);
+    final greenThreshold = user.greenThreshold;
+    final yellowThreshold = user.yellowThreshold;
+
     return ListView.separated(
       padding: const EdgeInsets.all(14),
       itemCount: students.length,
       separatorBuilder: (_, __) => const Divider(height: 1, color: AppColors.lineFaint),
       itemBuilder: (context, i) {
         final s = students[i];
-        final color = _getPerformanceColor(s);
-        final label = _getPerformanceLabel(s);
+        final color = _getPerformanceColor(s, greenThreshold, yellowThreshold);
+        final label = _getPerformanceLabel(s, greenThreshold, yellowThreshold);
         final score = _getCombinedScore(s);
 
         return ListTile(
@@ -69,7 +73,7 @@ class _RosterTab extends StatelessWidget {
           leading: CircleAvatar(
             backgroundColor: color.withOpacity(0.12),
             child: Text(
-              s.name.split(' ').map((w) => w[0]).take(2).join(),
+              s.name.split(' ').where((w) => w.isNotEmpty).map((w) => w[0]).take(2).join(),
               style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: color),
             ),
           ),

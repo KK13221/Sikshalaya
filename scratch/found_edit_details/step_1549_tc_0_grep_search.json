@@ -1,0 +1,11 @@
+{
+  "name": "grep_search",
+  "args": {
+    "IsRegex": "false",
+    "MatchPerLine": "true",
+    "Query": "\"TestTypesView\"",
+    "SearchPath": "\"/Users/shubhamjain/Documents/Kamlesh/Sikshalaya/src/pages/PrincipalAdmin.jsx\"",
+    "toolAction": "\"Searching for TestTypesView\"",
+    "toolSummary": "\"Grep TestTypesView\""
+  }
+}

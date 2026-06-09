@@ -1,0 +1,10 @@
+{
+  "name": "view_file",
+  "args": {
+    "AbsolutePath": "\"/Users/shubhamjain/Documents/Kamlesh/Sikshalaya/src/pages/PrincipalAdmin.jsx\"",
+    "EndLine": "1340",
+    "StartLine": "1233",
+    "toolAction": "\"Viewing CurriculumView states and render\"",
+    "toolSummary": "\"Read CurriculumView render\""
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "name": "view_file",
+  "args": {
+    "AbsolutePath": "\"/Users/shubhamjain/Documents/Kamlesh/Sikshalaya/src/pages/PrincipalAdmin.jsx\"",
+    "EndLine": "1080",
+    "StartLine": "1020",
+    "toolAction": "\"Viewing AttendanceView around error lines\"",
+    "toolSummary": "\"Read AttendanceView error area\""
+  }
+}

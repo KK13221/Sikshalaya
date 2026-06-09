@@ -395,7 +395,7 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
                                         radius: 17,
                                         backgroundColor: color.withOpacity(0.15),
                                         child: Text(
-                                          s.name.split(' ').map((w) => w[0]).take(2).join(),
+                                          s.name.split(' ').where((w) => w.isNotEmpty).map((w) => w[0]).take(2).join(),
                                           style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: color),
                                         ),
                                       ),

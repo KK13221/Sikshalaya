@@ -41,6 +41,9 @@ app.use('/api/behaviour-metrics', require('./routes/behaviourMetrics'))
 app.use('/api/notifications',     require('./routes/notifications'))
 app.use('/api/notices',           require('./routes/notices'))
 app.use('/api/settings',          require('./routes/settings'))
+app.use('/api/teacher-performance', require('./routes/teacherPerformance'))
+app.use('/api/reports',           require('./routes/reports'))
+app.use('/api/activity-logs',     require('./routes/activityLogs'))
 
 // Global error handler — catches errors forwarded via next(err)
 app.use((err, req, res, next) => {
